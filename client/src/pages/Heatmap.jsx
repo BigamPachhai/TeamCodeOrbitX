@@ -7,6 +7,19 @@ import "leaflet/dist/leaflet.css";
 import "leaflet.heat";
 import { MapPin, Layers, Info } from "lucide-react";
 
+// Fix Leaflet default icon issue
+if (typeof window !== "undefined") {
+  delete L.Icon.Default.prototype._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl:
+      "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
+    iconUrl:
+      "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
+    shadowUrl:
+      "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+  });
+}
+
 // Component to update heatmap when issues change
 function HeatmapLayer({ issues, map }) {
   const heatLayerRef = useRef(null);
@@ -16,7 +29,12 @@ function HeatmapLayer({ issues, map }) {
 
     // Remove existing heat layer if any
     if (heatLayerRef.current) {
-      map.removeLayer(heatLayerRef.current);
+      try {
+        map.removeLayer(heatLayerRef.current);
+      } catch (error) {
+        console.error("Error removing heat layer:", error);
+      }
+      heatLayerRef.current = null;
     }
 
     // Group issues by location (cluster nearby issues)
@@ -67,28 +85,48 @@ function HeatmapLayer({ issues, map }) {
       });
     }
 
-    // Create heat layer with better settings
-    const heatLayer = L.heatLayer(heatPoints, {
-      radius: 30,
-      blur: 20,
-      maxZoom: 17,
-      max: 1.0,
-      gradient: {
-        0.0: "#3b82f6", // blue-500
-        0.3: "#10b981", // green-500
-        0.5: "#eab308", // yellow-500
-        0.7: "#f97316", // orange-500
-        1.0: "#ef4444", // red-500
-      },
-    });
+    // Only create heat layer if we have points
+    if (heatPoints.length === 0) return;
 
-    heatLayer.addTo(map);
-    heatLayerRef.current = heatLayer;
+    try {
+      // Check if L.heat is available (from leaflet.heat plugin)
+      if (!L.heat) {
+        console.error(
+          "Leaflet.heat plugin not loaded. Make sure leaflet.heat is installed."
+        );
+        return;
+      }
+
+      // Create heat layer with better settings
+      const heatLayer = L.heat(heatPoints, {
+        radius: 30,
+        blur: 20,
+        maxZoom: 17,
+        max: 1.0,
+        gradient: {
+          0.0: "#3b82f6", // blue-500
+          0.3: "#10b981", // green-500
+          0.5: "#eab308", // yellow-500
+          0.7: "#f97316", // orange-500
+          1.0: "#ef4444", // red-500
+        },
+      });
+
+      heatLayer.addTo(map);
+      heatLayerRef.current = heatLayer;
+    } catch (error) {
+      console.error("Error creating heat layer:", error);
+    }
 
     // Cleanup on unmount
     return () => {
-      if (heatLayerRef.current) {
-        map.removeLayer(heatLayerRef.current);
+      if (heatLayerRef.current && map) {
+        try {
+          map.removeLayer(heatLayerRef.current);
+        } catch (error) {
+          console.error("Error cleaning up heat layer:", error);
+        }
+        heatLayerRef.current = null;
       }
     };
   }, [map, issues]);
@@ -107,21 +145,32 @@ export default function Heatmap() {
   const [mapType, setMapType] = useState("street"); // 'street' or 'satellite'
   const [mapInstance, setMapInstance] = useState(null);
 
-  const { data: issues, isLoading } = useQuery({
+  const {
+    data: issues,
+    isLoading,
+    error: queryError,
+  } = useQuery({
     queryKey: ["heatmap"],
     queryFn: async () => {
-      const { data } = await api.get("/issues/all");
-      // Filter out issues without valid coordinates
-      return data.filter(
-        (issue) =>
-          issue.lat &&
-          issue.lng &&
-          !isNaN(issue.lat) &&
-          !isNaN(issue.lng) &&
-          issue.lat !== 0 &&
-          issue.lng !== 0
-      );
+      try {
+        const { data } = await api.get("/issues/all");
+        // Filter out issues without valid coordinates
+        const filtered = data.filter(
+          (issue) =>
+            issue.lat &&
+            issue.lng &&
+            !isNaN(Number(issue.lat)) &&
+            !isNaN(Number(issue.lng)) &&
+            Number(issue.lat) !== 0 &&
+            Number(issue.lng) !== 0
+        );
+        return filtered;
+      } catch (error) {
+        console.error("Error fetching issues for heatmap:", error);
+        return [];
+      }
     },
+    retry: 2,
   });
 
   // Tile layer URLs
@@ -147,12 +196,18 @@ export default function Heatmap() {
               <MapPin className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-[#003865]">Community Issues Heatmap</h1>
-              <p className="text-xs text-gray-600">रुपन्देही जिल्ला | Rupandehi District Administration Office</p>
-              <p className="text-xs text-gray-500 mt-0.5">Geospatial analysis of reported community concerns</p>
+              <h1 className="text-lg font-bold text-[#003865]">
+                Community Issues Heatmap
+              </h1>
+              <p className="text-xs text-gray-600">
+                रुपन्देही जिल्ला | Rupandehi District Administration Office
+              </p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Geospatial analysis of reported community concerns
+              </p>
             </div>
           </div>
-          
+
           {/* Statistics */}
           <div className="flex items-center gap-5">
             <div className="text-right border-r border-gray-200 pr-5">
@@ -160,7 +215,9 @@ export default function Heatmap() {
               <p className="text-xs text-gray-600 font-medium">Total Issues</p>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-bold text-[#003865]">{uniqueLocations}</p>
+              <p className="text-2xl font-bold text-[#003865]">
+                {uniqueLocations}
+              </p>
               <p className="text-xs text-gray-600 font-medium">Locations</p>
             </div>
           </div>
@@ -171,7 +228,9 @@ export default function Heatmap() {
       <div className="absolute top-24 right-6 z-[1000] bg-white rounded border border-gray-200 shadow-sm p-4 w-72">
         {/* Map Type Selection */}
         <div className="mb-4 border-b border-gray-200 pb-4">
-          <h3 className="text-xs font-semibold text-[#003865] mb-2 uppercase tracking-wide">Map View</h3>
+          <h3 className="text-xs font-semibold text-[#003865] mb-2 uppercase tracking-wide">
+            Map View
+          </h3>
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => setMapType("street")}
@@ -200,7 +259,9 @@ export default function Heatmap() {
 
         {/* Heat Intensity Legend */}
         <div className="mb-4 border-b border-gray-200 pb-4">
-          <h3 className="text-xs font-semibold text-[#003865] mb-2 uppercase tracking-wide">Issue Density</h3>
+          <h3 className="text-xs font-semibold text-[#003865] mb-2 uppercase tracking-wide">
+            Issue Density
+          </h3>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-600">Low</span>
@@ -223,7 +284,9 @@ export default function Heatmap() {
           <div className="space-y-1.5 text-xs text-gray-600">
             <div className="flex justify-between">
               <span>Last Updated:</span>
-              <span className="font-medium">{new Date().toLocaleDateString()}</span>
+              <span className="font-medium">
+                {new Date().toLocaleDateString()}
+              </span>
             </div>
             <div className="flex justify-between">
               <span>Coverage:</span>
@@ -231,9 +294,24 @@ export default function Heatmap() {
             </div>
             {isLoading && (
               <div className="flex items-center gap-2 text-[#003865]">
-                <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <svg
+                  className="animate-spin h-3 w-3"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
                 <span>Loading data...</span>
               </div>
@@ -244,22 +322,45 @@ export default function Heatmap() {
 
       {/* Map Container */}
       <div className="pt-20 h-full">
-        <MapContainer
-          center={[27.6842, 83.4323]}
-          zoom={11}
-          className="h-full w-full"
-          whenCreated={setMapInstance}
-        >
-          <TileLayer
-            url={tileLayers[mapType]}
-            attribution={
-              mapType === "satellite"
-                ? "&copy; Esri &mdash; Source: Esri, Maxar, GeoEye, Earthstar Geographics, CNES/Airbus DS, USDA, USGS, AeroGRID, IGN, and the GIS User Community"
-                : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }
-          />
-          {mapInstance && <MapContent issues={issues} />}
-        </MapContainer>
+        {isLoading ? (
+          <div className="h-full flex items-center justify-center bg-gray-100">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-[#003865] mx-auto"></div>
+              <p className="mt-4 text-gray-700 font-semibold">
+                Loading map data...
+              </p>
+            </div>
+          </div>
+        ) : queryError ? (
+          <div className="h-full flex items-center justify-center bg-gray-100">
+            <div className="text-center bg-white border border-gray-200 p-6 rounded shadow-sm">
+              <p className="text-red-600 font-semibold">
+                Error loading heatmap data
+              </p>
+              <p className="text-sm text-gray-600 mt-2">
+                Please try refreshing the page
+              </p>
+            </div>
+          </div>
+        ) : (
+          <MapContainer
+            center={[27.6842, 83.4323]}
+            zoom={11}
+            className="h-full w-full"
+            whenCreated={setMapInstance}
+            scrollWheelZoom={true}
+          >
+            <TileLayer
+              url={tileLayers[mapType]}
+              attribution={
+                mapType === "satellite"
+                  ? "&copy; Esri &mdash; Source: Esri, Maxar, GeoEye, Earthstar Geographics, CNES/Airbus DS, USDA, USGS, AeroGRID, IGN, and the GIS User Community"
+                  : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              }
+            />
+            {mapInstance && issues && <MapContent issues={issues} />}
+          </MapContainer>
+        )}
       </div>
 
       {/* Empty State */}
@@ -268,7 +369,9 @@ export default function Heatmap() {
           <div className="w-14 h-14 bg-gray-100 rounded flex items-center justify-center mx-auto mb-3">
             <MapPin className="w-7 h-7 text-gray-400" />
           </div>
-          <h3 className="text-base font-semibold text-[#003865] mb-2">No Data Available</h3>
+          <h3 className="text-base font-semibold text-[#003865] mb-2">
+            No Data Available
+          </h3>
           <p className="text-gray-600 text-sm">
             There are currently no geotagged issues to display on the heatmap.
           </p>

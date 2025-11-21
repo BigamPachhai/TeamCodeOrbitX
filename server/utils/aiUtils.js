@@ -10,7 +10,7 @@ export const analyzeImageCategory = async (imageUrl) => {
       return "Other";
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
     const prompt = `Analyze this image and determine which category it belongs to. 
     Categories are: "Road Management", "Waste Management", "Electricity", "Water Supply", or "Other".
@@ -76,7 +76,7 @@ export const generateDescriptionAI = async (imageUrl) => {
       return "Issue detected in the image. Please provide more details.";
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
     const prompt = `Analyze this image of a community issue in Rupandehi District, Nepal. 
     Generate a clear, concise description in English (or Nepali if appropriate) that describes:
@@ -144,7 +144,7 @@ export const detectDuplicateIssue = async (lat, lng, imageUrl) => {
         // Compare with the most recent nearby issue
         const mostRecentIssue = nearbyIssues[0];
         if (mostRecentIssue.image) {
-          const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+          const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
           // Fetch both images
           const [image1Response, image2Response] = await Promise.all([
@@ -208,7 +208,7 @@ export const suggestPriorityAI = async (imageUrl, description = "") => {
       return "medium"; // Default priority
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
     let prompt = `Analyze this community issue and suggest a priority level: "high", "medium", or "low".
     
@@ -267,7 +267,7 @@ export const assessSeverityAI = async (imageUrl, description = "") => {
       };
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
     let prompt = `Analyze this community issue in Rupandehi, Nepal and assess:
     1. Severity: "critical", "high", "moderate", "low"
@@ -353,7 +353,7 @@ export const generateTagsAI = async (imageUrl, description = "", category = "") 
       return [];
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
     let prompt = `Analyze this community issue and generate 3-5 relevant tags/keywords.
     Tags should be short (1-2 words), specific, and useful for searching/filtering.
@@ -440,7 +440,7 @@ export const predictResolutionTime = async (category, priority, description = ""
           }, 0) / similarIssues.length
         : 7; // Default 7 days if no similar issues
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
     const prompt = `Based on the following information, predict resolution time:
     - Category: ${category}
@@ -507,7 +507,7 @@ export const enhanceDescriptionAI = async (originalDescription) => {
       return originalDescription;
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
     const prompt = `Improve and enhance this community issue description while keeping the original meaning and facts intact.
     
@@ -542,7 +542,7 @@ export const suggestCategoriesAI = async (imageUrl, description = "") => {
       return [{ category: "Other", confidence: 0.5 }];
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
     let prompt = `Analyze this community issue and suggest the top 3 most likely categories from:
     "Road Management", "Waste Management", "Electricity", "Water Supply", "Other"
@@ -640,7 +640,7 @@ export const findSimilarIssues = async (description, category, lat, lng, limit =
       return [];
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
     // Create a prompt to find semantically similar issues
     const issueDescriptions = nearbyIssues.map((issue, idx) => 
@@ -717,7 +717,7 @@ export const suggestDepartment = async (imageUrl, description, category) => {
       };
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
     const departments = [
       "Public Works Department",
@@ -823,7 +823,7 @@ export const analyzeSentiment = async (text) => {
       };
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
     const prompt = `Analyze the sentiment of this text from a community issue reporting platform:
 "${text}"
@@ -904,7 +904,7 @@ export const predictImpact = async (imageUrl, description, category, locationNam
       };
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
     let prompt = `Analyze this community issue in Rupandehi, Nepal and predict its impact:
 
@@ -1013,7 +1013,7 @@ export const detectDuplicateWithDetails = async (lat, lng, imageUrl, description
     // If image provided, use AI to compare visual similarity
     if (imageUrl && genAI) {
       try {
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
         // Compare with most recent nearby issue
         const mostRecentIssue = nearbyIssues[0];

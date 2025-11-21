@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import api from "../api/axios";
 import MapPicker from "../components/MapPicker";
@@ -6,9 +6,16 @@ import IssueTemplates from "../components/IssueTemplates";
 import VoiceRecorder from "../components/VoiceRecorder";
 import QRCodeScanner from "../components/QRCodeScanner";
 import { categories } from "../data/categories";
-import { saveOfflineIssue, isOnline, setupAutoSync } from "../utils/offlineStorage";
+import {
+  saveOfflineIssue,
+  isOnline,
+  setupAutoSync,
+} from "../utils/offlineStorage";
 import { getAllWards, getLocationsByWard } from "../data/rupandehiWards";
-import { getAllMunicipalities, getWardsByMunicipality } from "../data/municipalities";
+import {
+  getAllMunicipalities,
+  getWardsByMunicipality,
+} from "../data/municipalities";
 import { useToast } from "../components/Toast";
 import {
   Upload,
@@ -72,7 +79,9 @@ export default function ReportIssue() {
     setSelectedCategory(template.category);
     setDescription(template.description);
     setShowTemplates(false);
-    success("Template selected! Review and customize the details before submitting.");
+    success(
+      "Template selected! Review and customize the details before submitting."
+    );
   };
 
   const handleImageUpload = (e) => {
@@ -103,18 +112,20 @@ export default function ReportIssue() {
       if (description && description.trim().length > 0) {
         fd.append("description", description);
       }
-      
+
       const { data } = await api.post("/issues/ai-generate", fd);
-      
+
       // Only set description if user hasn't written one yet
       // If user has written something, they can still use AI suggestions but it won't overwrite
       if (!description || description.trim().length < 10) {
         setDescription(data.aiDescription || "");
       } else {
         // If user already has a description, show AI suggestion but don't auto-replace
-        info("AI description generated! You can replace your text or keep what you wrote.");
+        info(
+          "AI description generated! You can replace your text or keep what you wrote."
+        );
       }
-      
+
       // Store comprehensive AI analysis
       if (data.category || data.priority || data.severity || data.tags) {
         setAiAnalysis({
@@ -125,20 +136,22 @@ export default function ReportIssue() {
           categories: data.categories,
           aiDescription: data.aiDescription, // Store AI description separately
         });
-        
+
         // Auto-select category if suggested with high confidence (only if user hasn't selected)
         if (data.category && !selectedCategory) {
           setSelectedCategory(data.category);
         }
-        
+
         // Show AI analysis panel
         setShowAIAnalysis(true);
       }
-      
+
       success("AI analysis completed. Check the insights below.");
     } catch (err) {
       console.error("AI generation error:", err);
-      error("Failed to generate AI description. Please try again or write your own description.");
+      error(
+        "Failed to generate AI description. Please try again or write your own description."
+      );
     } finally {
       setLoading(false);
     }
@@ -282,7 +295,7 @@ export default function ReportIssue() {
         success(
           "Issue saved offline! It will be automatically submitted when you're back online."
         );
-        
+
         // Reset form
         setImage(null);
         setDescription("");
@@ -350,8 +363,17 @@ export default function ReportIssue() {
       }
     }
     if (currentStep === 2) {
-      if (!selectedMunicipality || !selectedCategory || !selectedWard || !locationName || !lat || !lng) {
-        warning("Please complete all location information (Municipality, Ward, Category, and location) before proceeding");
+      if (
+        !selectedMunicipality ||
+        !selectedCategory ||
+        !selectedWard ||
+        !locationName ||
+        !lat ||
+        !lng
+      ) {
+        warning(
+          "Please complete all location information (Municipality, Ward, Category, and location) before proceeding"
+        );
         return;
       }
     }
@@ -400,7 +422,9 @@ export default function ReportIssue() {
 
         {/* Progress Indicator */}
         <div className="bg-white border border-gray-200 shadow-sm mb-6 p-6">
-          <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">Submission Progress</h3>
+          <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">
+            Submission Progress
+          </h3>
           <div className="flex items-center justify-between">
             {steps.map((step, index) => (
               <div key={step.number} className="flex items-center flex-1">
@@ -431,9 +455,7 @@ export default function ReportIssue() {
                 {index < steps.length - 1 && (
                   <div
                     className={`h-0.5 mx-4 flex-1 ${
-                      step.completed
-                        ? "bg-[#003865]"
-                        : "bg-gray-200"
+                      step.completed ? "bg-[#003865]" : "bg-gray-200"
                     }`}
                   />
                 )}
@@ -487,7 +509,8 @@ export default function ReportIssue() {
                       Issue Documentation
                     </h2>
                     <p className="text-gray-600 text-sm">
-                      Please provide detailed information about the community issue you wish to report
+                      Please provide detailed information about the community
+                      issue you wish to report
                     </p>
                   </div>
 
@@ -503,13 +526,15 @@ export default function ReportIssue() {
                       )}
                     </label>
                     <p className="text-xs text-gray-500 mb-3">
-                      Please upload clear photographic evidence of the issue (Required)
+                      Please upload clear photographic evidence of the issue
+                      (Required)
                     </p>
 
                     {!image ? (
                       <div className="relative border-2 border-dashed border-gray-300 rounded p-8 text-center bg-gray-50 hover:border-[#003865] hover:bg-gray-100 transition-colors cursor-pointer">
                         <input
                           type="file"
+                          name="issueImage"
                           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                           onChange={handleImageUpload}
                           accept="image/*"
@@ -522,7 +547,8 @@ export default function ReportIssue() {
                             Upload Evidence Photo
                           </p>
                           <p className="text-gray-600 text-sm">
-                            Click to upload clear photographic evidence of the issue
+                            Click to upload clear photographic evidence of the
+                            issue
                           </p>
                         </div>
                       </div>
@@ -538,7 +564,8 @@ export default function ReportIssue() {
                                 {image.name}
                               </p>
                               <p className="text-xs text-gray-600">
-                                {(image.size / 1024 / 1024).toFixed(2)} MB • Ready for submission
+                                {(image.size / 1024 / 1024).toFixed(2)} MB •
+                                Ready for submission
                               </p>
                             </div>
                           </div>
@@ -566,6 +593,7 @@ export default function ReportIssue() {
                           </button>
                           <input
                             type="file"
+                            name="issueImageReplace"
                             className="hidden"
                             onChange={handleImageUpload}
                             accept="image/*"
@@ -578,7 +606,10 @@ export default function ReportIssue() {
                   {/* Description */}
                   <div className="relative">
                     <div className="flex items-center justify-between mb-4">
-                      <label htmlFor="description-textarea" className="block text-lg font-medium text-gray-900 cursor-pointer">
+                      <label
+                        htmlFor="description-textarea"
+                        className="block text-lg font-medium text-gray-900 cursor-pointer"
+                      >
                         Detailed Description
                       </label>
                       <span className="text-sm text-gray-500 font-medium">
@@ -591,7 +622,9 @@ export default function ReportIssue() {
                       <VoiceRecorder
                         onTranscript={(transcript) => {
                           if (transcript) {
-                            setDescription((prev) => prev ? `${prev}\n${transcript}` : transcript);
+                            setDescription((prev) =>
+                              prev ? `${prev}\n${transcript}` : transcript
+                            );
                           }
                         }}
                         language="ne-NP"
@@ -612,7 +645,8 @@ export default function ReportIssue() {
                     {!description && (
                       <p className="text-sm text-gray-500 mt-2 flex items-center gap-2">
                         <AlertCircle className="w-4 h-4" />
-                        You can write your own description or use AI to generate one from your photo
+                        You can write your own description or use AI to generate
+                        one from your photo
                       </p>
                     )}
 
@@ -635,7 +669,7 @@ export default function ReportIssue() {
                           </>
                         )}
                       </button>
-                      
+
                       {description && description.trim().length >= 10 && (
                         <button
                           type="button"
@@ -649,26 +683,33 @@ export default function ReportIssue() {
                         </button>
                       )}
                     </div>
-                    
+
                     {/* Show AI-generated description as suggestion if user already has text */}
-                    {showAIAnalysis && aiAnalysis?.aiDescription && description && description.trim().length >= 10 && (
-                      <div className="mt-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-xl">
-                        <div className="flex items-start justify-between mb-2">
-                          <p className="text-sm font-semibold text-blue-900 flex items-center gap-2">
-                            <Zap className="w-4 h-4" />
-                            AI Generated Description (Suggestion):
+                    {showAIAnalysis &&
+                      aiAnalysis?.aiDescription &&
+                      description &&
+                      description.trim().length >= 10 && (
+                        <div className="mt-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-xl">
+                          <div className="flex items-start justify-between mb-2">
+                            <p className="text-sm font-semibold text-blue-900 flex items-center gap-2">
+                              <Zap className="w-4 h-4" />
+                              AI Generated Description (Suggestion):
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setDescription(aiAnalysis.aiDescription)
+                              }
+                              className="text-xs bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                            >
+                              Use This
+                            </button>
+                          </div>
+                          <p className="text-sm text-gray-700 italic">
+                            {aiAnalysis.aiDescription}
                           </p>
-                          <button
-                            type="button"
-                            onClick={() => setDescription(aiAnalysis.aiDescription)}
-                            className="text-xs bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                          >
-                            Use This
-                          </button>
                         </div>
-                        <p className="text-sm text-gray-700 italic">{aiAnalysis.aiDescription}</p>
-                      </div>
-                    )}
+                      )}
 
                     {/* AI Analysis Insights Panel */}
                     {showAIAnalysis && aiAnalysis && (
@@ -686,51 +727,72 @@ export default function ReportIssue() {
                             <X className="w-4 h-4" />
                           </button>
                         </div>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           {/* Category Suggestions */}
-                          {aiAnalysis.categories && aiAnalysis.categories.length > 0 && (
-                            <div className="bg-white border border-gray-200 p-3 rounded">
-                              <p className="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">Suggested Categories</p>
-                              <div className="space-y-2">
-                                {aiAnalysis.categories.slice(0, 3).map((cat, idx) => (
-                                  <button
-                                    key={idx}
-                                    type="button"
-                                    onClick={() => setSelectedCategory(cat.category)}
-                                    className={`w-full text-left px-2 py-1.5 rounded border text-xs transition-colors ${
-                                      selectedCategory === cat.category
-                                        ? 'bg-[#003865] text-white border-[#003865]'
-                                        : 'bg-white border-gray-300 hover:border-[#003865] hover:bg-gray-50'
-                                    }`}
-                                  >
-                                    <div className="flex items-center justify-between">
-                                      <span className="font-medium">{cat.category}</span>
-                                      <span className={`text-xs px-1.5 py-0.5 rounded ${
-                                        selectedCategory === cat.category ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
-                                      }`}>
-                                        {Math.round(cat.confidence * 100)}%
-                                      </span>
-                                    </div>
-                                  </button>
-                                ))}
+                          {aiAnalysis.categories &&
+                            aiAnalysis.categories.length > 0 && (
+                              <div className="bg-white border border-gray-200 p-3 rounded">
+                                <p className="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">
+                                  Suggested Categories
+                                </p>
+                                <div className="space-y-2">
+                                  {aiAnalysis.categories
+                                    .slice(0, 3)
+                                    .map((cat, idx) => (
+                                      <button
+                                        key={idx}
+                                        type="button"
+                                        onClick={() =>
+                                          setSelectedCategory(cat.category)
+                                        }
+                                        className={`w-full text-left px-2 py-1.5 rounded border text-xs transition-colors ${
+                                          selectedCategory === cat.category
+                                            ? "bg-[#003865] text-white border-[#003865]"
+                                            : "bg-white border-gray-300 hover:border-[#003865] hover:bg-gray-50"
+                                        }`}
+                                      >
+                                        <div className="flex items-center justify-between">
+                                          <span className="font-medium">
+                                            {cat.category}
+                                          </span>
+                                          <span
+                                            className={`text-xs px-1.5 py-0.5 rounded ${
+                                              selectedCategory === cat.category
+                                                ? "bg-white/20 text-white"
+                                                : "bg-gray-100 text-gray-600"
+                                            }`}
+                                          >
+                                            {Math.round(cat.confidence * 100)}%
+                                          </span>
+                                        </div>
+                                      </button>
+                                    ))}
+                                </div>
                               </div>
-                            </div>
-                          )}
+                            )}
 
                           {/* Priority & Severity */}
                           {(aiAnalysis.priority || aiAnalysis.severity) && (
                             <div className="bg-white border border-gray-200 p-3 rounded">
-                              <p className="text-xs font-semibold text-gray-700 mb-2 uppercase">Priority & Severity</p>
+                              <p className="text-xs font-semibold text-gray-700 mb-2 uppercase">
+                                Priority & Severity
+                              </p>
                               <div className="space-y-2">
                                 {aiAnalysis.priority && (
                                   <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                                    <span className="text-sm text-gray-700">Priority:</span>
-                                    <span className={`font-bold text-sm px-3 py-1 rounded-full ${
-                                      aiAnalysis.priority === 'high' ? 'bg-red-100 text-red-700' :
-                                      aiAnalysis.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                                      'bg-blue-100 text-blue-700'
-                                    }`}>
+                                    <span className="text-sm text-gray-700">
+                                      Priority:
+                                    </span>
+                                    <span
+                                      className={`font-bold text-sm px-3 py-1 rounded-full ${
+                                        aiAnalysis.priority === "high"
+                                          ? "bg-red-100 text-red-700"
+                                          : aiAnalysis.priority === "medium"
+                                          ? "bg-yellow-100 text-yellow-700"
+                                          : "bg-blue-100 text-blue-700"
+                                      }`}
+                                    >
                                       {aiAnalysis.priority.toUpperCase()}
                                     </span>
                                   </div>
@@ -738,18 +800,30 @@ export default function ReportIssue() {
                                 {aiAnalysis.severity && (
                                   <div className="p-2 bg-gray-50 rounded-lg">
                                     <div className="flex items-center justify-between mb-1">
-                                      <span className="text-sm text-gray-700">Severity:</span>
-                                      <span className={`font-bold text-xs px-2 py-1 rounded-full ${
-                                        aiAnalysis.severity.severity === 'critical' ? 'bg-red-100 text-red-700' :
-                                        aiAnalysis.severity.severity === 'high' ? 'bg-orange-100 text-orange-700' :
-                                        aiAnalysis.severity.severity === 'moderate' ? 'bg-yellow-100 text-yellow-700' :
-                                        'bg-blue-100 text-blue-700'
-                                      }`}>
+                                      <span className="text-sm text-gray-700">
+                                        Severity:
+                                      </span>
+                                      <span
+                                        className={`font-bold text-xs px-2 py-1 rounded-full ${
+                                          aiAnalysis.severity.severity ===
+                                          "critical"
+                                            ? "bg-red-100 text-red-700"
+                                            : aiAnalysis.severity.severity ===
+                                              "high"
+                                            ? "bg-orange-100 text-orange-700"
+                                            : aiAnalysis.severity.severity ===
+                                              "moderate"
+                                            ? "bg-yellow-100 text-yellow-700"
+                                            : "bg-blue-100 text-blue-700"
+                                        }`}
+                                      >
                                         {aiAnalysis.severity.severity?.toUpperCase()}
                                       </span>
                                     </div>
                                     {aiAnalysis.severity.reasoning && (
-                                      <p className="text-xs text-gray-600 mt-1">{aiAnalysis.severity.reasoning}</p>
+                                      <p className="text-xs text-gray-600 mt-1">
+                                        {aiAnalysis.severity.reasoning}
+                                      </p>
                                     )}
                                   </div>
                                 )}
@@ -760,7 +834,9 @@ export default function ReportIssue() {
                           {/* Tags */}
                           {aiAnalysis.tags && aiAnalysis.tags.length > 0 && (
                             <div className="bg-white border border-gray-200 p-3 rounded md:col-span-2">
-                              <p className="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">Suggested Tags</p>
+                              <p className="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">
+                                Suggested Tags
+                              </p>
                               <div className="flex flex-wrap gap-2">
                                 {aiAnalysis.tags.map((tag, idx) => (
                                   <span
@@ -788,7 +864,8 @@ export default function ReportIssue() {
                       Location Specification
                     </h2>
                     <p className="text-gray-600 text-sm">
-                      Precise location information is required for efficient issue resolution
+                      Precise location information is required for efficient
+                      issue resolution
                     </p>
                   </div>
 
@@ -827,12 +904,19 @@ export default function ReportIssue() {
                         disabled={!selectedMunicipality}
                         required
                       >
-                        <option value="">{selectedMunicipality ? "Select ward number" : "Select municipality first"}</option>
-                        {selectedMunicipality && getWardsByMunicipality(selectedMunicipality).map((ward) => (
-                          <option key={ward} value={ward}>
-                            {ward}
-                          </option>
-                        ))}
+                        <option value="">
+                          {selectedMunicipality
+                            ? "Select ward number"
+                            : "Select municipality first"}
+                        </option>
+                        {selectedMunicipality &&
+                          getWardsByMunicipality(selectedMunicipality).map(
+                            (ward) => (
+                              <option key={ward} value={ward}>
+                                {ward}
+                              </option>
+                            )
+                          )}
                       </select>
                     </div>
 
@@ -872,9 +956,11 @@ export default function ReportIssue() {
                         className="p-4 border-2 border-gray-300 rounded hover:border-[#003865] hover:bg-gray-50 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-300 disabled:hover:bg-transparent"
                       >
                         <div className="flex items-center gap-3">
-                          <div className={`w-12 h-12 rounded flex items-center justify-center ${
-                            gettingLocation ? 'bg-[#003865]' : 'bg-gray-200'
-                          }`}>
+                          <div
+                            className={`w-12 h-12 rounded flex items-center justify-center ${
+                              gettingLocation ? "bg-[#003865]" : "bg-gray-200"
+                            }`}
+                          >
                             {gettingLocation ? (
                               <Loader2 className="w-6 h-6 text-white animate-spin" />
                             ) : (
@@ -904,10 +990,16 @@ export default function ReportIssue() {
                         }`}
                       >
                         <div className="flex items-center gap-3">
-                          <div className={`w-12 h-12 rounded flex items-center justify-center ${
-                            showMap ? "bg-[#003865]" : "bg-gray-200"
-                          }`}>
-                            <MapIcon className={`w-6 h-6 ${showMap ? 'text-white' : 'text-[#003865]'}`} />
+                          <div
+                            className={`w-12 h-12 rounded flex items-center justify-center ${
+                              showMap ? "bg-[#003865]" : "bg-gray-200"
+                            }`}
+                          >
+                            <MapIcon
+                              className={`w-6 h-6 ${
+                                showMap ? "text-white" : "text-[#003865]"
+                              }`}
+                            />
                           </div>
                           <div className="flex-1">
                             <h3 className="font-semibold text-gray-900 text-sm mb-1">
@@ -944,7 +1036,8 @@ export default function ReportIssue() {
                       Report Verification
                     </h2>
                     <p className="text-gray-600 text-sm">
-                      Please review and confirm your issue report details before submission
+                      Please review and confirm your issue report details before
+                      submission
                     </p>
                   </div>
 
@@ -968,7 +1061,9 @@ export default function ReportIssue() {
                               Ward
                             </label>
                             <p className="text-sm text-gray-900 mt-1 font-medium">
-                              {selectedWard ? `Ward ${selectedWard}` : "Not specified"}
+                              {selectedWard
+                                ? `Ward ${selectedWard}`
+                                : "Not specified"}
                             </p>
                           </div>
                           <div>
@@ -1058,7 +1153,8 @@ export default function ReportIssue() {
                       Final Review & Submission
                     </h2>
                     <p className="text-gray-600 text-sm">
-                      Review your information below and click Submit Report to finalize your submission
+                      Review your information below and click Submit Report to
+                      finalize your submission
                     </p>
                   </div>
 
@@ -1067,16 +1163,27 @@ export default function ReportIssue() {
                       Submission Information
                     </h3>
                     <ul className="text-sm text-gray-700 space-y-1.5 list-disc list-inside">
-                      <li>Issue will be processed within 48 hours of submission</li>
-                      <li>Reference number will be provided upon successful submission</li>
-                      <li>Progress updates available through the tracking system</li>
-                      {isAnonymous && <li>Your submission has been recorded anonymously</li>}
+                      <li>
+                        Issue will be processed within 48 hours of submission
+                      </li>
+                      <li>
+                        Reference number will be provided upon successful
+                        submission
+                      </li>
+                      <li>
+                        Progress updates available through the tracking system
+                      </li>
+                      {isAnonymous && (
+                        <li>Your submission has been recorded anonymously</li>
+                      )}
                     </ul>
                   </div>
 
                   <div className="bg-gray-50 border border-gray-200 p-4 rounded">
                     <p className="text-xs text-gray-600 text-center">
-                      By submitting this report, you acknowledge that the information provided is accurate to the best of your knowledge.
+                      By submitting this report, you acknowledge that the
+                      information provided is accurate to the best of your
+                      knowledge.
                     </p>
                   </div>
                 </div>
@@ -1134,7 +1241,8 @@ export default function ReportIssue() {
               // Parse QR code data (assuming JSON format)
               try {
                 const parsed = JSON.parse(data);
-                if (parsed.municipality) setSelectedMunicipality(parsed.municipality);
+                if (parsed.municipality)
+                  setSelectedMunicipality(parsed.municipality);
                 if (parsed.category) setSelectedCategory(parsed.category);
                 if (parsed.ward) setSelectedWard(parsed.ward);
                 if (parsed.locationName) setLocationName(parsed.locationName);
@@ -1155,7 +1263,8 @@ export default function ReportIssue() {
         {/* Footer Note */}
         <div className="text-center mt-6 pt-4 border-t border-gray-200">
           <p className="text-xs text-gray-500">
-            Rupandehi District Administration Office • Public Grievance Management System
+            Rupandehi District Administration Office • Public Grievance
+            Management System
           </p>
           <p className="text-xs text-gray-400 mt-1">
             नेपाल सरकार | Government of Nepal
