@@ -3,12 +3,15 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import api from "../api/axios";
 import { getImageUrl, getPlaceholderImage } from "../utils/imageUtils";
+import { useToast } from "../components/Toast";
+import { Clock, AlertCircle, CheckCircle2, MapPin, Calendar, Heart, MessageCircle, FileDown, Upload, Camera } from "lucide-react";
 
 export default function AdminIssueDetails() {
   const { id } = useParams();
   const [afterImage, setAfterImage] = useState(null);
   const [uploading, setUploading] = useState(false);
   const queryClient = useQueryClient();
+  const { success, error, warning } = useToast();
 
   const { data: issue, refetch } = useQuery({
     queryKey: ["admin-issue", id],
@@ -35,11 +38,11 @@ export default function AdminIssueDetails() {
       await api.put(`/admin/update-status/${id}`, { status });
       await refetch();
       queryClient.invalidateQueries({ queryKey: ["admin-issues"] });
-      alert("Status updated successfully!");
-    } catch (error) {
-      alert(
+      success("Status updated successfully!");
+    } catch (err) {
+      error(
         "Error updating status: " +
-          (error.response?.data?.message || error.message)
+          (err.response?.data?.message || err.message)
       );
     }
   };
@@ -47,7 +50,7 @@ export default function AdminIssueDetails() {
   const uploadCompletionPhotos = async (e) => {
     e.preventDefault();
     if (!afterImage) {
-      alert("Please select an after image");
+      warning("Please select an after image");
       return;
     }
 
@@ -60,14 +63,14 @@ export default function AdminIssueDetails() {
       await api.post(`/admin/completion-photos/${id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      alert("Completion photo uploaded successfully!");
+      success("Completion photo uploaded successfully!");
       setAfterImage(null);
       refetchPhotos();
       refetch();
-    } catch (error) {
-      alert(
+    } catch (err) {
+      error(
         "Error uploading photo: " +
-          (error.response?.data?.message || error.message)
+          (err.response?.data?.message || err.message)
       );
     } finally {
       setUploading(false);
@@ -197,44 +200,48 @@ export default function AdminIssueDetails() {
           <button
             onClick={() => updateStatus("pending")}
             disabled={issue.status === "pending"}
-            className={`px-5 py-2 rounded-lg font-semibold transition ${
+            className={`px-5 py-2 rounded-lg font-semibold transition border shadow-sm flex items-center gap-2 ${
               issue.status === "pending"
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-yellow-500 text-white hover:bg-yellow-600"
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed border-gray-400"
+                : "bg-yellow-500 text-white hover:bg-yellow-600 border-yellow-600"
             }`}
           >
-            ⏳ Set to Pending
+            <Clock className="w-4 h-4" />
+            Set to Pending
           </button>
 
           <button
             onClick={() => updateStatus("in-progress")}
             disabled={issue.status === "in-progress"}
-            className={`px-5 py-2 rounded-lg font-semibold transition ${
+            className={`px-5 py-2 rounded-lg font-semibold transition border shadow-sm flex items-center gap-2 ${
               issue.status === "in-progress"
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-blue-600 text-white hover:bg-blue-700"
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed border-gray-400"
+                : "bg-blue-700 text-white hover:bg-blue-800 border-blue-600"
             }`}
           >
-            🔄 Set to In Progress
+            <AlertCircle className="w-4 h-4" />
+            Set to In Progress
           </button>
 
           <button
             onClick={() => updateStatus("resolved")}
             disabled={issue.status === "resolved"}
-            className={`px-5 py-2 rounded-lg font-semibold transition ${
+            className={`px-5 py-2 rounded-lg font-semibold transition border shadow-sm flex items-center gap-2 ${
               issue.status === "resolved"
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-green-600 text-white hover:bg-green-700"
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed border-gray-400"
+                : "bg-green-600 text-white hover:bg-green-700 border-green-500"
             }`}
           >
-            ✅ Mark as Resolved
+            <CheckCircle2 className="w-4 h-4" />
+            Mark as Resolved
           </button>
 
           <button
             onClick={downloadPDF}
-            className="px-5 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition"
+            className="px-5 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition border border-purple-500 shadow-sm flex items-center gap-2"
           >
-            📄 Download PDF Report
+            <FileDown className="w-4 h-4" />
+            Download PDF Report
           </button>
         </div>
       </div>
@@ -285,13 +292,26 @@ export default function AdminIssueDetails() {
           <button
             type="submit"
             disabled={uploading || !afterImage}
-            className={`w-full py-3 rounded-lg font-semibold transition ${
+            className={`w-full py-3 rounded-lg font-semibold transition border shadow-sm flex items-center justify-center gap-2 ${
               uploading || !afterImage
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-blue-600 text-white hover:bg-blue-700"
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed border-gray-400"
+                : "bg-blue-700 text-white hover:bg-blue-800 border-blue-600"
             }`}
           >
-            {uploading ? "Uploading..." : "📤 Upload Completion Photo"}
+            {uploading ? (
+              <>
+                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Uploading...
+              </>
+            ) : (
+              <>
+                <Upload className="w-4 h-4" />
+                Upload Completion Photo
+              </>
+            )}
           </button>
         </form>
       </div>

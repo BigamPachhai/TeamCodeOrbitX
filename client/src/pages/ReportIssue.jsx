@@ -4,6 +4,22 @@ import api from "../api/axios";
 import MapPicker from "../components/MapPicker";
 import { categories } from "../data/categories";
 import { getAllWards, getLocationsByWard } from "../data/rupandehiWards";
+import { useToast } from "../components/Toast";
+import {
+  Upload,
+  MapPin,
+  CheckCircle,
+  AlertCircle,
+  Zap,
+  X,
+  Camera,
+  Loader2,
+  ArrowLeft,
+  ArrowRight,
+  Navigation,
+  Map as MapIcon,
+  Trash2,
+} from "lucide-react";
 
 export default function ReportIssue() {
   const { t } = useTranslation();
@@ -19,6 +35,7 @@ export default function ReportIssue() {
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [gettingLocation, setGettingLocation] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
+  const { success, error, warning, info } = useToast();
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -33,7 +50,7 @@ export default function ReportIssue() {
 
   const generateAI = async () => {
     if (!image) {
-      alert("Please upload an image document first");
+      warning("Please upload an image document first");
       return;
     }
 
@@ -43,9 +60,10 @@ export default function ReportIssue() {
       fd.append("image", image);
       const { data } = await api.post("/issues/ai-generate", fd);
       setDescription(data.aiDescription || "");
-    } catch (error) {
-      console.error("AI generation error:", error);
-      alert("Failed to generate description. Please try again.");
+      success("AI description generated successfully!");
+    } catch (err) {
+      console.error("AI generation error:", err);
+      error("Failed to generate description. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -94,9 +112,9 @@ export default function ReportIssue() {
 
           setShowMap(true);
         },
-        (error) => {
-          console.error("Error getting location:", error);
-          alert(
+        (err) => {
+          console.error("Error getting location:", err);
+          error(
             "Unable to retrieve your location. Please ensure location services are enabled in your browser settings."
           );
           setGettingLocation(false);
@@ -108,7 +126,7 @@ export default function ReportIssue() {
         }
       );
     } else {
-      alert("Geolocation services are not supported by your browser");
+      error("Geolocation services are not supported by your browser");
       setGettingLocation(false);
     }
   };
@@ -118,15 +136,15 @@ export default function ReportIssue() {
 
     // Validation
     if (!image) {
-      alert("Please upload an image before submitting");
+      warning("Please upload an image before submitting");
       return;
     }
     if (!description.trim()) {
-      alert("Please provide a description of the issue");
+      warning("Please provide a description of the issue");
       return;
     }
     if (!locationName.trim() || !lat || !lng) {
-      alert("Please provide complete location information");
+      warning("Please provide complete location information");
       return;
     }
 
@@ -143,7 +161,7 @@ export default function ReportIssue() {
       fd.append("isAnonymous", isAnonymous);
 
       await api.post("/issues/create", fd);
-      alert(
+      success(
         isAnonymous
           ? "Issue report submitted successfully. Your submission has been recorded anonymously."
           : "Issue report submitted successfully. Thank you for your contribution to community improvement."
@@ -159,9 +177,9 @@ export default function ReportIssue() {
       setLng("");
       setIsAnonymous(false);
       setCurrentStep(1);
-    } catch (error) {
-      console.error("Submission error:", error);
-      alert(
+    } catch (err) {
+      console.error("Submission error:", err);
+      error(
         "Failed to submit issue report. Please verify your information and try again."
       );
     } finally {
@@ -173,17 +191,17 @@ export default function ReportIssue() {
     // Validate current step before proceeding
     if (currentStep === 1) {
       if (!image) {
-        alert("Please upload an image before proceeding");
+        warning("Please upload an image before proceeding");
         return;
       }
       if (!description.trim()) {
-        alert("Please provide a description before proceeding");
+        warning("Please provide a description before proceeding");
         return;
       }
     }
     if (currentStep === 2) {
       if (!selectedCategory || !selectedWard || !locationName || !lat || !lng) {
-        alert("Please complete all location information before proceeding");
+        warning("Please complete all location information before proceeding");
         return;
       }
     }
@@ -204,14 +222,14 @@ export default function ReportIssue() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header Section */}
         <div className="text-center mb-12">
-          <div className="flex items-center justify-center mb-4">
-            <div className="w-12 h-12 bg-blue-800 rounded-full flex items-center justify-center mr-4">
+          <div className="flex items-center justify-center mb-4 flex-wrap gap-4">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg transform hover:scale-105 transition-transform">
               <svg
-                className="w-6 h-6 text-white"
+                className="w-8 h-8 text-white"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -224,33 +242,33 @@ export default function ReportIssue() {
                 />
               </svg>
             </div>
-            <div className="text-left">
-              <h1 className="text-3xl font-bold text-gray-900">
+            <div className="text-center md:text-left">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent whitespace-nowrap">
                 Public Issue Reporting System
               </h1>
-              <p className="text-gray-600 mt-1">
-                Municipal Corporation - Citizen Service Portal
+              <p className="text-gray-600 mt-2 text-lg whitespace-nowrap">
+                🏛️ Municipal Corporation - Citizen Service Portal
               </p>
             </div>
           </div>
-          <div className="w-32 h-1 bg-blue-800 mx-auto rounded-full"></div>
+          <div className="w-40 h-1.5 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 mx-auto rounded-full shadow-lg"></div>
         </div>
 
         {/* Progress Indicator */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border-2 border-purple-100 p-8 mb-8">
           <div className="flex items-center justify-between">
             {steps.map((step, index) => (
               <div key={step.number} className="flex items-center">
                 <div
-                  className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
+                  className={`flex items-center justify-center w-12 h-12 rounded-xl border-2 ${
                     step.completed || currentStep === step.number
-                      ? "bg-blue-800 border-blue-800 text-white"
-                      : "border-gray-300 text-gray-500"
-                  } font-semibold`}
+                      ? "bg-gradient-to-br from-blue-600 to-purple-600 border-purple-400 text-white shadow-lg"
+                      : "border-gray-300 text-gray-500 bg-white"
+                  } font-bold transition-all duration-300`}
                 >
                   {step.completed ? (
                     <svg
-                      className="w-5 h-5"
+                      className="w-6 h-6"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -258,7 +276,7 @@ export default function ReportIssue() {
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        strokeWidth={2}
+                        strokeWidth={3}
                         d="M5 13l4 4L19 7"
                       />
                     </svg>
@@ -267,9 +285,9 @@ export default function ReportIssue() {
                   )}
                 </div>
                 <span
-                  className={`ml-3 text-sm font-medium ${
+                  className={`ml-3 text-sm font-semibold ${
                     currentStep === step.number
-                      ? "text-blue-800"
+                      ? "text-purple-700"
                       : "text-gray-600"
                   }`}
                 >
@@ -277,8 +295,10 @@ export default function ReportIssue() {
                 </span>
                 {index < steps.length - 1 && (
                   <div
-                    className={`w-16 h-0.5 mx-4 ${
-                      step.completed ? "bg-blue-800" : "bg-gray-300"
+                    className={`w-16 h-1 mx-4 rounded-full transition-all duration-300 ${
+                      step.completed
+                        ? "bg-gradient-to-r from-blue-600 to-purple-600"
+                        : "bg-gray-300"
                     }`}
                   />
                 )}
@@ -288,18 +308,18 @@ export default function ReportIssue() {
         </div>
 
         {/* Main Form Container */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl border-2 border-purple-100 overflow-hidden">
           {/* Form Content */}
-          <div className="p-8">
+          <div className="p-8 md:p-10">
             <form onSubmit={handleSubmit}>
               {/* Step 1: Issue Details */}
               {currentStep === 1 && (
                 <div className="space-y-8">
-                  <div className="border-b border-gray-200 pb-6">
-                    <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-                      Issue Documentation
+                  <div className="border-b-2 border-purple-100 pb-6">
+                    <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3">
+                      📋 Issue Documentation
                     </h2>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 text-lg">
                       Please provide detailed information about the community
                       issue
                     </p>
@@ -317,7 +337,7 @@ export default function ReportIssue() {
                     </label>
 
                     {!image ? (
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors bg-gray-50 cursor-pointer">
+                      <div className="border-3 border-dashed border-purple-300 rounded-2xl p-10 text-center hover:border-purple-500 transition-all duration-300 bg-gradient-to-br from-purple-50 to-blue-50 cursor-pointer hover:shadow-xl group">
                         <input
                           type="file"
                           className="absolute opacity-0 w-full h-full cursor-pointer"
@@ -325,46 +345,24 @@ export default function ReportIssue() {
                           accept="image/*"
                         />
                         <div className="pointer-events-none">
-                          <svg
-                            className="w-16 h-16 text-gray-400 mx-auto mb-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                            />
-                          </svg>
-                          <p className="text-gray-700 font-medium mb-2 text-lg">
-                            Upload Evidence Photo
+                          <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <Upload className="w-10 h-10 text-white" />
+                          </div>
+                          <p className="text-gray-800 font-bold mb-2 text-xl">
+                            📸 Upload Evidence Photo
                           </p>
-                          <p className="text-gray-500">
+                          <p className="text-gray-600 text-lg">
                             Click to upload clear photographic evidence of the
                             issue
                           </p>
                         </div>
                       </div>
                     ) : (
-                      <div className="border-2 border-green-200 border-dashed rounded-lg p-6 bg-green-50">
+                      <div className="border-3 border-green-300 border-dashed rounded-2xl p-6 bg-gradient-to-br from-green-50 to-emerald-50 shadow-lg">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4">
-                            <div className="w-16 h-16 bg-green-100 rounded-lg flex items-center justify-center">
-                              <svg
-                                className="w-8 h-8 text-green-600"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                                />
-                              </svg>
+                            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center shadow-md">
+                              <CheckCircle className="w-8 h-8 text-white" />
                             </div>
                             <div>
                               <p className="font-semibold text-gray-900">
@@ -379,21 +377,10 @@ export default function ReportIssue() {
                           <button
                             type="button"
                             onClick={removeImage}
-                            className="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50 transition-colors"
+                            className="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50 transition-colors flex items-center gap-2 border border-red-200 hover:border-red-300"
+                            title="Remove image"
                           >
-                            <svg
-                              className="w-5 h-5"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                              />
-                            </svg>
+                            <Trash2 className="w-5 h-5" />
                           </button>
                         </div>
                         <div className="mt-4 flex gap-3">
@@ -404,8 +391,9 @@ export default function ReportIssue() {
                                 .querySelector('input[type="file"]')
                                 .click()
                             }
-                            className="px-4 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors text-sm font-medium"
+                            className="px-4 py-2 text-blue-700 border-2 border-blue-700 rounded-lg hover:bg-blue-50 transition-colors text-sm font-medium flex items-center gap-2 shadow-sm hover:shadow-md"
                           >
+                            <Camera className="w-4 h-4" />
                             Change Photo
                           </button>
                           <input
@@ -437,47 +425,17 @@ export default function ReportIssue() {
                       type="button"
                       onClick={generateAI}
                       disabled={loading || !image}
-                      className="w-full mt-4 bg-blue-700 text-white py-3 rounded-lg hover:bg-blue-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition font-medium flex items-center justify-center gap-3"
+                      className="w-full mt-4 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 text-white py-4 rounded-xl hover:from-purple-700 hover:via-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-300 font-bold text-lg flex items-center justify-center gap-3 border-2 border-purple-400 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 hover:scale-[1.02] disabled:transform-none disabled:shadow-none"
                     >
                       {loading ? (
                         <>
-                          <svg
-                            className="animate-spin h-5 w-5 text-white"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                          >
-                            <circle
-                              className="opacity-25"
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              stroke="currentColor"
-                              strokeWidth="4"
-                            ></circle>
-                            <path
-                              className="opacity-75"
-                              fill="currentColor"
-                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            ></path>
-                          </svg>
-                          Processing Documentation...
+                          <Loader2 className="w-6 h-6 animate-spin" />
+                          <span>✨ Processing Documentation...</span>
                         </>
                       ) : (
                         <>
-                          <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M13 10V3L4 14h7v7l9-11h-7z"
-                            />
-                          </svg>
-                          Generate Professional Description
+                          <Zap className="w-6 h-6" />
+                          <span>🤖 Generate AI Description</span>
                         </>
                       )}
                     </button>
@@ -488,11 +446,11 @@ export default function ReportIssue() {
               {/* Step 2: Location Information */}
               {currentStep === 2 && (
                 <div className="space-y-8">
-                  <div className="border-b border-gray-200 pb-6">
-                    <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-                      Location Specification
+                  <div className="border-b-2 border-purple-100 pb-6">
+                    <h2 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-3">
+                      📍 Location Specification
                     </h2>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 text-lg">
                       Precise location information is required for efficient
                       issue resolution
                     </p>
@@ -550,36 +508,24 @@ export default function ReportIssue() {
                         type="button"
                         onClick={getCurrentLocationDirect}
                         disabled={gettingLocation}
-                        className="p-6 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-left"
+                        className="p-7 border-3 border-green-300 rounded-2xl hover:border-green-500 hover:bg-gradient-to-br hover:from-green-50 hover:to-emerald-50 transition-all duration-300 text-left shadow-lg hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-300 disabled:hover:bg-transparent group transform hover:scale-105"
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                            <svg
-                              className="w-6 h-6 text-green-600"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                              />
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                              />
-                            </svg>
+                        <div className="flex items-center gap-4">
+                          <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center group-hover:from-green-600 group-hover:to-emerald-600 transition-colors shadow-md">
+                            {gettingLocation ? (
+                              <Loader2 className="w-8 h-8 text-white animate-spin" />
+                            ) : (
+                              <Navigation className="w-8 h-8 text-white" />
+                            )}
                           </div>
-                          <div>
-                            <h3 className="font-semibold text-gray-900">
-                              Current Location
+                          <div className="flex-1">
+                            <h3 className="font-bold text-gray-900 text-lg mb-1">
+                              🎯 Current Location
                             </h3>
-                            <p className="text-sm text-gray-600 mt-1">
-                              Use device GPS for precise coordinates
+                            <p className="text-sm text-gray-600">
+                              {gettingLocation
+                                ? "Getting your location..."
+                                : "Use device GPS for precise coordinates"}
                             </p>
                           </div>
                         </div>
@@ -588,30 +534,30 @@ export default function ReportIssue() {
                       <button
                         type="button"
                         onClick={() => setShowMap(!showMap)}
-                        className="p-6 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-left"
+                        className={`p-7 border-3 rounded-2xl transition-all duration-300 text-left shadow-lg hover:shadow-2xl group transform hover:scale-105 ${
+                          showMap
+                            ? "border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50"
+                            : "border-blue-300 hover:border-blue-500 hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50"
+                        }`}
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <svg
-                              className="w-6 h-6 text-blue-600"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
-                              />
-                            </svg>
+                        <div className="flex items-center gap-4">
+                          <div
+                            className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-colors shadow-md ${
+                              showMap
+                                ? "bg-gradient-to-br from-blue-600 to-indigo-600"
+                                : "bg-gradient-to-br from-blue-500 to-indigo-500 group-hover:from-blue-600 group-hover:to-indigo-600"
+                            }`}
+                          >
+                            <MapIcon className="w-8 h-8 text-white" />
                           </div>
-                          <div>
-                            <h3 className="font-semibold text-gray-900">
-                              Map Selection
+                          <div className="flex-1">
+                            <h3 className="font-bold text-gray-900 text-lg mb-1">
+                              🗺️ Map Selection
                             </h3>
-                            <p className="text-sm text-gray-600 mt-1">
-                              Select location on interactive map
+                            <p className="text-sm text-gray-600">
+                              {showMap
+                                ? "Map is visible - Click to hide"
+                                : "Select location on interactive map"}
                             </p>
                           </div>
                         </div>
@@ -788,31 +734,52 @@ export default function ReportIssue() {
               )}
 
               {/* Navigation Buttons */}
-              <div className="flex justify-between pt-8 border-t border-gray-200 mt-8">
+              <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center pt-8 border-t-2 border-purple-100 mt-8 gap-4">
                 <button
                   type="button"
                   onClick={prevStep}
                   disabled={currentStep === 1}
-                  className="px-8 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium"
+                  className="group relative px-8 py-4 bg-white border-3 border-gray-300 text-gray-700 rounded-2xl hover:border-purple-400 hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-gray-300 disabled:hover:bg-white transition-all duration-300 font-bold text-lg flex items-center justify-center gap-3 shadow-lg hover:shadow-2xl disabled:shadow-sm transform hover:-translate-y-1 hover:scale-[1.02] disabled:transform-none overflow-hidden"
                 >
-                  Previous
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <ArrowLeft className="w-6 h-6 relative z-10 group-hover:-translate-x-1 transition-transform duration-300" />
+                  <span className="relative z-10">Previous</span>
                 </button>
 
                 {currentStep < 4 ? (
                   <button
                     type="button"
                     onClick={nextStep}
-                    className="px-8 py-3 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition font-medium"
+                    className="group relative px-10 py-4 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white rounded-2xl hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 transition-all duration-300 font-bold text-xl border-2 border-purple-400 shadow-2xl hover:shadow-3xl flex items-center justify-center gap-3 transform hover:-translate-y-1 hover:scale-[1.05] overflow-hidden"
                   >
-                    Continue
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <span className="relative z-10 text-lg sm:text-xl">
+                      Continue
+                    </span>
+                    <ArrowRight className="w-6 h-6 relative z-10 group-hover:translate-x-1 transition-transform duration-300" />
                   </button>
                 ) : (
                   <button
                     type="submit"
                     disabled={loading}
-                    className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition font-medium"
+                    className="group relative px-10 py-4 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 text-white rounded-2xl hover:from-green-600 hover:via-emerald-600 hover:to-teal-600 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-300 font-bold text-xl border-2 border-emerald-400 shadow-2xl hover:shadow-3xl flex items-center justify-center gap-3 transform hover:-translate-y-1 hover:scale-[1.05] disabled:transform-none disabled:shadow-sm overflow-hidden"
                   >
-                    {loading ? "Submitting..." : "Submit Report"}
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-7 h-7 animate-spin relative z-10" />
+                        <span className="relative z-10 text-lg sm:text-xl">
+                          ✨ Submitting...
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="w-7 h-7 relative z-10 group-hover:scale-110 transition-transform duration-300" />
+                        <span className="relative z-10 text-lg sm:text-xl">
+                          🚀 Submit Report
+                        </span>
+                      </>
+                    )}
                   </button>
                 )}
               </div>

@@ -116,7 +116,7 @@ export default function Hero() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/10">
       {/* Enhanced Hero Banner */}
-      <div className="relative bg-gradient-to-r from-red-700 via-red-600 to-red-800 overflow-hidden">
+      <div className="relative bg-gradient-to-b from-blue-900 to-blue-950">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-[0.02]">
           <div className="absolute top-10 left-10 w-24 h-24 border-t-2 border-l-2 border-white rounded-tl-xl"></div>
@@ -364,130 +364,6 @@ export default function Hero() {
                     <span className="text-white">98% Success Rate</span>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Enhanced Footer */}
-      <div className="bg-gradient-to-br from-gray-900 via-slate-900 to-gray-950 text-white">
-        {/* Main Footer Content */}
-        <div className="max-w-7xl mx-auto px-6 py-16">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {/* Brand Section */}
-            <div className="md:col-span-2">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-r from-red-600 to-red-700 rounded-xl flex items-center justify-center">
-                  <Shield className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold">रुपन्देही समस्या</h3>
-                  <p className="text-gray-400 text-sm">Civic Issue Portal</p>
-                </div>
-              </div>
-              <p className="text-gray-300 mb-6 max-w-md leading-relaxed">
-                Empowering citizens to create positive change in Rupandehi
-                through technology-driven civic engagement and municipal
-                collaboration.
-              </p>
-              <div className="flex gap-4">
-                <div className="flex items-center gap-2 text-sm text-gray-300">
-                  <Globe className="w-4 h-4" />
-                  <span>rupandehi.gov.np</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Links */}
-            <div>
-              <h4 className="font-bold text-lg mb-6 text-white">Quick Links</h4>
-              <div className="space-y-3">
-                <Link
-                  to="/feed"
-                  className="block text-gray-300 hover:text-white transition-colors"
-                >
-                  Browse Issues
-                </Link>
-                <Link
-                  to="/report"
-                  className="block text-gray-300 hover:text-white transition-colors"
-                >
-                  Report Problem
-                </Link>
-                <Link
-                  to="/about"
-                  className="block text-gray-300 hover:text-white transition-colors"
-                >
-                  About Project
-                </Link>
-                <Link
-                  to="/help"
-                  className="block text-gray-300 hover:text-white transition-colors"
-                >
-                  Help Center
-                </Link>
-              </div>
-            </div>
-
-            {/* Contact Info */}
-            <div>
-              <h4 className="font-bold text-lg mb-6 text-white">Contact</h4>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 text-gray-300">
-                  <Phone className="w-4 h-4" />
-                  <span>071-XXXXXX</span>
-                </div>
-                <div className="flex items-center gap-3 text-gray-300">
-                  <Mail className="w-4 h-4" />
-                  <span>info@rupandehi.gov.np</span>
-                </div>
-                <div className="flex items-center gap-3 text-gray-300">
-                  <Map className="w-4 h-4" />
-                  <span>Rupandehi Municipality</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Impact Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12 pt-12 border-t border-gray-800">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-yellow-400">2,500+</div>
-              <div className="text-gray-400 text-sm">Issues Resolved</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-400">98%</div>
-              <div className="text-gray-400 text-sm">Success Rate</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-400">24h</div>
-              <div className="text-gray-400 text-sm">Avg. Response</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-400">15K+</div>
-              <div className="text-gray-400 text-sm">Active Users</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Bar */}
-        <div className="border-t border-gray-800">
-          <div className="max-w-7xl mx-auto px-6 py-6">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <div className="text-center md:text-left">
-                <p className="text-gray-400 text-sm">
-                  <span className="font-semibold text-red-400">
-                    रुपन्देही नगरपालिका
-                  </span>{" "}
-                  संग समन्वयित • Your reports directly reach municipal
-                  authorities for immediate action
-                </p>
-              </div>
-              <div className="flex items-center gap-4 text-sm text-gray-400">
-                <span>© 2024 Rupandehi Civic Portal</span>
-                <div className="w-1 h-1 bg-gray-600 rounded-full"></div>
-                <span>All rights reserved</span>
               </div>
             </div>
           </div>

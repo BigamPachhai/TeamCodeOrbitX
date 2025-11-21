@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { getImageUrl } from "../utils/imageUtils";
+import { useToast } from "./Toast";
+import { Share2, X, Facebook, Twitter, MessageCircle, Linkedin, Copy, Download, CheckCircle, MapPin } from "lucide-react";
 
 export default function SuccessStoryShare({ issue, beforeAfter }) {
   const [showShareModal, setShowShareModal] = useState(false);
+  const { success, error } = useToast();
 
   const successText = `Community Issue Resolved Successfully
 
@@ -50,10 +53,10 @@ View the complete details and progress photos at: ${window.location.origin}/issu
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(successText);
-      alert("Success story copied to clipboard!");
+      success("Success story copied to clipboard!");
     } catch (err) {
       console.error("Failed to copy:", err);
-      alert("Failed to copy. Please try again.");
+      error("Failed to copy. Please try again.");
     }
   };
 
@@ -157,10 +160,10 @@ View the complete details and progress photos at: ${window.location.origin}/issu
     <>
       <button
         onClick={() => setShowShareModal(true)}
-        className="px-6 py-3 bg-gradient-to-r from-blue-600 to-red-600 text-white rounded-lg hover:from-blue-700 hover:to-red-700 transition-all duration-300 font-semibold flex items-center gap-3 shadow-md border border-transparent hover:border-white/20"
+        className="px-6 py-3 bg-gradient-to-r from-blue-700 to-blue-800 text-white rounded-lg hover:from-blue-800 hover:to-blue-900 transition-all duration-300 font-semibold flex items-center gap-3 shadow-md border border-blue-600 whitespace-nowrap"
       >
-        <span className="text-lg">📢</span>
-        Share Success Story
+        <Share2 className="w-5 h-5 flex-shrink-0" />
+        <span>Share Success Story</span>
       </button>
 
       {showShareModal && (
@@ -169,12 +172,12 @@ View the complete details and progress photos at: ${window.location.origin}/issu
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-600 to-red-600 px-8 py-6 text-white">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                    <span className="text-xl">📢</span>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Share2 className="w-6 h-6 text-white" />
                   </div>
-                  <div>
-                    <h2 className="text-2xl font-bold">Share Success Story</h2>
+                  <div className="min-w-0 flex-1">
+                    <h2 className="text-2xl font-bold whitespace-nowrap">Share Success Story</h2>
                     <p className="text-blue-100 text-sm">
                       Spread the word about this community achievement
                     </p>
@@ -182,9 +185,9 @@ View the complete details and progress photos at: ${window.location.origin}/issu
                 </div>
                 <button
                   onClick={() => setShowShareModal(false)}
-                  className="text-white/80 hover:text-white text-2xl w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+                  className="text-white/80 hover:text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
                 >
-                  ×
+                  <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
@@ -204,7 +207,7 @@ View the complete details and progress photos at: ${window.location.origin}/issu
                     {issue.category}
                   </p>
                   <p className="text-gray-600 flex items-center justify-center gap-2 mt-2">
-                    <span>📍</span>
+                    <MapPin className="w-4 h-4" />
                     {issue.locationName}
                   </p>
                 </div>
@@ -252,33 +255,33 @@ View the complete details and progress photos at: ${window.location.origin}/issu
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <button
                       onClick={shareOnFacebook}
-                      className="flex flex-col items-center justify-center p-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-300 shadow-sm border border-blue-500"
+                      className="flex flex-col items-center justify-center p-4 bg-[#1877F2] text-white rounded-lg hover:bg-[#166FE5] transition-all duration-300 shadow-sm border border-[#166FE5]"
                     >
-                      <span className="text-2xl mb-2">f</span>
+                      <Facebook className="w-6 h-6 mb-2" />
                       <span className="text-sm font-medium">Facebook</span>
                     </button>
 
                     <button
                       onClick={shareOnTwitter}
-                      className="flex flex-col items-center justify-center p-4 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-all duration-300 shadow-sm border border-sky-400"
+                      className="flex flex-col items-center justify-center p-4 bg-black text-white rounded-lg hover:bg-gray-800 transition-all duration-300 shadow-sm border border-gray-700"
                     >
-                      <span className="text-2xl mb-2">𝕏</span>
+                      <Twitter className="w-6 h-6 mb-2" />
                       <span className="text-sm font-medium">Twitter</span>
                     </button>
 
                     <button
                       onClick={shareOnWhatsApp}
-                      className="flex flex-col items-center justify-center p-4 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all duration-300 shadow-sm border border-green-400"
+                      className="flex flex-col items-center justify-center p-4 bg-[#25D366] text-white rounded-lg hover:bg-[#20BD5C] transition-all duration-300 shadow-sm border border-[#20BD5C]"
                     >
-                      <span className="text-2xl mb-2">💬</span>
+                      <MessageCircle className="w-6 h-6 mb-2" />
                       <span className="text-sm font-medium">WhatsApp</span>
                     </button>
 
                     <button
                       onClick={shareOnLinkedIn}
-                      className="flex flex-col items-center justify-center p-4 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-all duration-300 shadow-sm border border-blue-600"
+                      className="flex flex-col items-center justify-center p-4 bg-[#0A66C2] text-white rounded-lg hover:bg-[#0959AC] transition-all duration-300 shadow-sm border border-[#0959AC]"
                     >
-                      <span className="text-2xl mb-2">in</span>
+                      <Linkedin className="w-6 h-6 mb-2" />
                       <span className="text-sm font-medium">LinkedIn</span>
                     </button>
                   </div>
@@ -287,17 +290,17 @@ View the complete details and progress photos at: ${window.location.origin}/issu
                 <div className="grid grid-cols-2 gap-4">
                   <button
                     onClick={copyToClipboard}
-                    className="flex items-center justify-center gap-3 p-4 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all duration-300 shadow-sm border border-gray-500"
+                    className="flex items-center justify-center gap-3 p-4 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-all duration-300 shadow-sm border border-gray-600 whitespace-nowrap"
                   >
-                    <span className="text-xl">📋</span>
+                    <Copy className="w-5 h-5 flex-shrink-0" />
                     <span className="font-medium">Copy Text</span>
                   </button>
 
                   <button
                     onClick={downloadAsImage}
-                    className="flex items-center justify-center gap-3 p-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all duration-300 shadow-sm border border-purple-500"
+                    className="flex items-center justify-center gap-3 p-4 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-all duration-300 shadow-sm border border-blue-600 whitespace-nowrap"
                   >
-                    <span className="text-xl">🖼️</span>
+                    <Download className="w-5 h-5 flex-shrink-0" />
                     <span className="font-medium">Download Image</span>
                   </button>
                 </div>
@@ -321,7 +324,7 @@ View the complete details and progress photos at: ${window.location.origin}/issu
               <div className="flex justify-end">
                 <button
                   onClick={() => setShowShareModal(false)}
-                  className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
+                  className="px-6 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium border border-gray-600 shadow-sm"
                 >
                   Close
                 </button>

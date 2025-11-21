@@ -6,6 +6,8 @@ import { getSessionId } from "../utils/sessionUtils";
 import { getImageUrl } from "../utils/imageUtils";
 import SuccessStoryShare from "../components/SuccessStoryShare";
 import useAuth from "../hooks/useAuth";
+import { useToast } from "../components/Toast";
+import { MapPin, Heart, Clock, CheckCircle2, AlertCircle, Star, MessageCircle, X } from "lucide-react";
 
 export default function IssueDetails() {
   const { id } = useParams();
@@ -18,6 +20,7 @@ export default function IssueDetails() {
   const [submittingReview, setSubmittingReview] = useState(false);
   const { isAuthenticated, user } = useAuth();
   const queryClient = useQueryClient();
+  const { success, error, warning } = useToast();
 
   const {
     data: issue,
@@ -79,12 +82,12 @@ export default function IssueDetails() {
 
   const submitReview = async () => {
     if (!isAuthenticated) {
-      alert("Please login to submit a review");
+      warning("Please login to submit a review");
       return;
     }
 
     if (reviewRating < 1 || reviewRating > 5) {
-      alert("Please select a rating");
+      warning("Please select a rating");
       return;
     }
 
@@ -96,10 +99,10 @@ export default function IssueDetails() {
       });
       queryClient.invalidateQueries({ queryKey: ["user-review", id] });
       queryClient.invalidateQueries({ queryKey: ["reviews", id] });
-      alert("Review submitted successfully!");
-    } catch (error) {
-      console.error("Error submitting review:", error);
-      alert("Failed to submit review. Please try again.");
+      success("Review submitted successfully!");
+    } catch (err) {
+      console.error("Error submitting review:", err);
+      error("Failed to submit review. Please try again.");
     } finally {
       setSubmittingReview(false);
     }
@@ -132,9 +135,9 @@ export default function IssueDetails() {
       });
       setUpvoted(data.upvoted);
       setUpvoteCount(data.upvoteCount);
-    } catch (error) {
-      console.error("Error toggling upvote:", error);
-      alert("Failed to upvote. Please try again.");
+    } catch (err) {
+      console.error("Error toggling upvote:", err);
+      error("Failed to upvote. Please try again.");
     } finally {
       setLoadingUpvote(false);
     }
@@ -144,7 +147,7 @@ export default function IssueDetails() {
     if (!comment.trim()) return;
 
     if (!isAuthenticated) {
-      alert("Please login to comment");
+      warning("Please login to comment");
       return;
     }
 
@@ -152,9 +155,10 @@ export default function IssueDetails() {
       await api.post("/comments/add", { issueId: id, comment });
       setComment("");
       refetch();
-    } catch (error) {
-      console.error("Error adding comment:", error);
-      alert("Failed to add comment. Please try again.");
+      success("Comment added successfully!");
+    } catch (err) {
+      console.error("Error adding comment:", err);
+      error("Failed to add comment. Please try again.");
     }
   };
 
@@ -163,17 +167,17 @@ export default function IssueDetails() {
     pending: {
       color: "bg-orange-100 text-orange-800 border-orange-300",
       label: "Under Review",
-      icon: "🕒",
+      icon: <Clock className="w-4 h-4" />,
     },
     "in-progress": {
       color: "bg-blue-100 text-blue-800 border-blue-300",
       label: "In Progress",
-      icon: "🚧",
+      icon: <AlertCircle className="w-4 h-4" />,
     },
     resolved: {
       color: "bg-green-100 text-green-800 border-green-300",
       label: "Resolved",
-      icon: "✅",
+      icon: <CheckCircle2 className="w-4 h-4" />,
     },
   };
 
@@ -181,25 +185,27 @@ export default function IssueDetails() {
 
   if (isLoading)
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading issue details...</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+        <div className="text-center bg-white/80 backdrop-blur-sm p-12 rounded-3xl shadow-2xl border-2 border-purple-200">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-200 border-t-purple-600 mx-auto"></div>
+          <p className="mt-6 text-gray-700 text-xl font-semibold">
+            ✨ Loading issue details...
+          </p>
         </div>
       </div>
     );
 
   if (!issue)
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-2xl">❌</span>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+        <div className="text-center bg-white/90 backdrop-blur-sm p-12 rounded-3xl shadow-2xl border-2 border-red-200 max-w-md">
+          <div className="w-20 h-20 bg-gradient-to-br from-red-100 to-pink-100 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <AlertCircle className="w-10 h-10 text-red-600" />
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent mb-3">
             Issue Not Found
           </h2>
-          <p className="text-gray-600">
+          <p className="text-gray-600 text-lg">
             The requested issue could not be found.
           </p>
         </div>
@@ -207,57 +213,63 @@ export default function IssueDetails() {
     );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main Content Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border-2 border-purple-200 overflow-hidden">
           {/* Issue Image */}
-          <div className="relative">
+          <div className="relative group">
             <img
               src={issue.image}
-              className="w-full h-80 object-cover"
+              className="w-full h-96 object-cover transition-transform duration-300 group-hover:scale-105"
               alt={issue.category}
             />
-            <div className="absolute top-4 right-4">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="absolute top-6 right-6">
               <span
-                className={`px-4 py-2 rounded-full text-sm font-semibold border ${status.color}`}
+                className={`px-5 py-3 rounded-xl text-sm font-bold border-2 shadow-xl backdrop-blur-sm flex items-center gap-2 ${status.color}`}
               >
-                {status.icon} {status.label}
+                {status.icon}
+                {status.label}
               </span>
             </div>
           </div>
 
           {/* Issue Details */}
-          <div className="p-8">
+          <div className="p-8 md:p-10">
             {/* Header Section */}
-            <div className="border-b border-gray-200 pb-6 mb-6">
-              <h1 className="text-3xl font-bold text-gray-900 capitalize mb-3">
-                {issue.category}
+            <div className="border-b-2 border-purple-200 pb-8 mb-8">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent capitalize mb-4">
+                📋 {issue.category}
               </h1>
-              <p className="text-gray-700 text-lg leading-relaxed">
+              <p className="text-gray-700 text-xl leading-relaxed font-medium">
                 {issue.description}
               </p>
             </div>
 
             {/* Metadata Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
               <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-6 shadow-lg">
+                  <label className="text-sm font-bold text-blue-600 uppercase tracking-wide mb-3 flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
                     Location
                   </label>
-                  <p className="text-gray-900 font-medium flex items-center gap-2 mt-1">
-                    <span>📍</span>
+                  <p className="text-gray-900 font-bold text-lg flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-blue-600" />
                     {issue.locationName}
                   </p>
                 </div>
-                <div>
-                  <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
-                    Reported By
+                <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl p-6 shadow-lg">
+                  <label className="text-sm font-bold text-purple-600 uppercase tracking-wide mb-3">
+                    👤 Reported By
                   </label>
-                  <p className="text-gray-900 font-medium mt-1">
+                  <p className="text-gray-900 font-bold text-lg mt-1">
                     {issue.isAnonymous ? (
-                      <span className="text-gray-600">Anonymous Reporter</span>
+                      <span className="flex items-center gap-2 text-gray-600">
+                        <span>🔒</span>
+                        Anonymous Reporter
+                      </span>
                     ) : (
                       issue.user?.fullName || "Unknown"
                     )}
@@ -265,11 +277,12 @@ export default function IssueDetails() {
                 </div>
               </div>
               <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-6 shadow-lg">
+                  <label className="text-sm font-bold text-green-600 uppercase tracking-wide mb-3 flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
                     Reported Date
                   </label>
-                  <p className="text-gray-900 font-medium mt-1">
+                  <p className="text-gray-900 font-bold text-lg mt-1">
                     {new Date(issue.createdAt).toLocaleDateString("en-US", {
                       year: "numeric",
                       month: "long",
@@ -277,11 +290,13 @@ export default function IssueDetails() {
                     })}
                   </p>
                 </div>
-                <div>
-                  <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                <div className="bg-gradient-to-br from-orange-50 to-amber-50 border-2 border-orange-200 rounded-2xl p-6 shadow-lg">
+                  <label className="text-sm font-bold text-orange-600 uppercase tracking-wide mb-3 flex items-center gap-2">
+                    <Heart className="w-4 h-4" />
                     Community Support
                   </label>
-                  <p className="text-gray-900 font-medium mt-1">
+                  <p className="text-gray-900 font-bold text-lg mt-1 flex items-center gap-2">
+                    <Heart className="w-5 h-5 text-red-500" />
                     {upvoteCount} {upvoteCount === 1 ? "person" : "people"}{" "}
                     support this issue
                   </p>
@@ -294,7 +309,7 @@ export default function IssueDetails() {
               <button
                 onClick={handleToggleUpvote}
                 disabled={loadingUpvote}
-                className={`flex items-center gap-3 px-8 py-3 rounded-lg font-semibold transition-all border ${
+                className={`flex items-center gap-3 px-8 py-3 rounded-lg font-semibold transition-all border shadow-sm ${
                   upvoted
                     ? "bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
                     : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
@@ -304,13 +319,7 @@ export default function IssueDetails() {
                     : "cursor-pointer"
                 }`}
               >
-                <span
-                  className={`text-xl ${
-                    upvoted ? "text-red-500" : "text-gray-400"
-                  }`}
-                >
-                  {upvoted ? "❤️" : "🤍"}
-                </span>
+                <Heart className={`w-5 h-5 ${upvoted ? "text-red-600 fill-red-600" : "text-gray-400"}`} />
                 <span className="font-bold">{upvoteCount}</span>
                 <span>{upvoted ? "Supported" : "Support This Issue"}</span>
               </button>
@@ -461,13 +470,22 @@ export default function IssueDetails() {
                 <button
                   onClick={submitReview}
                   disabled={submittingReview || reviewRating < 1}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition font-semibold text-sm"
+                  className="px-6 py-3 bg-blue-700 text-white rounded-lg hover:bg-blue-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition font-semibold text-sm border border-blue-600 shadow-sm flex items-center gap-2"
                 >
-                  {submittingReview
-                    ? "Submitting..."
-                    : userReview
-                    ? "Update Review"
-                    : "Submit Review"}
+                  {submittingReview ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <Star className="w-4 h-4" />
+                      {userReview ? "Update Review" : "Submit Review"}
+                    </>
+                  )}
                 </button>
               </div>
             )}
@@ -548,8 +566,9 @@ export default function IssueDetails() {
               <button
                 onClick={addComment}
                 disabled={!comment.trim()}
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition font-semibold h-fit self-end"
+                className="bg-blue-700 text-white px-6 py-3 rounded-lg hover:bg-blue-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition font-semibold h-fit self-end border border-blue-600 shadow-sm flex items-center gap-2"
               >
+                <MessageCircle className="w-4 h-4" />
                 Post
               </button>
             </div>

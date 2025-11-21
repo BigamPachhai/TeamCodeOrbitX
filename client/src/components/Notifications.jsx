@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../api/axios";
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import { Bell, CheckCircle2, RefreshCw, Camera, Megaphone } from "lucide-react";
 
 export default function Notifications() {
   const [showNotifications, setShowNotifications] = useState(false);
@@ -50,11 +51,11 @@ export default function Notifications() {
     <div className="relative">
       <button
         onClick={() => setShowNotifications(!showNotifications)}
-        className="relative p-2 text-gray-700 hover:text-red-700 transition"
+        className="relative p-2 text-white hover:text-yellow-300 transition-colors rounded-lg hover:bg-white/10"
       >
-        <span className="text-2xl">🔔</span>
+        <Bell className="w-5 h-5" />
         {unreadCount?.count > 0 && (
-          <span className="absolute top-0 right-0 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+          <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-blue-900">
             {unreadCount.count > 9 ? "9+" : unreadCount.count}
           </span>
         )}
@@ -72,8 +73,9 @@ export default function Notifications() {
               {unreadNotifications.length > 0 && (
                 <button
                   onClick={() => markAllAsReadMutation.mutate()}
-                  className="text-xs text-blue-600 hover:text-blue-800"
+                  className="text-xs text-blue-700 hover:text-blue-800 font-medium px-2 py-1 rounded hover:bg-blue-50 transition-colors flex items-center gap-1"
                 >
+                  <CheckCircle2 className="w-3 h-3" />
                   Mark all as read
                 </button>
               )}
@@ -128,13 +130,13 @@ function NotificationItem({ notification, onMarkAsRead }) {
   const getIcon = (type) => {
     switch (type) {
       case "issue_resolved":
-        return "🎉";
+        return <CheckCircle2 className="w-5 h-5 text-green-600" />;
       case "issue_in_progress":
-        return "🔄";
+        return <RefreshCw className="w-5 h-5 text-blue-600" />;
       case "before_after_uploaded":
-        return "📸";
+        return <Camera className="w-5 h-5 text-purple-600" />;
       default:
-        return "📢";
+        return <Megaphone className="w-5 h-5 text-orange-600" />;
     }
   };
 
@@ -147,7 +149,7 @@ function NotificationItem({ notification, onMarkAsRead }) {
       }`}
     >
       <div className="flex items-start gap-3">
-        <span className="text-2xl">{getIcon(notification.type)}</span>
+        <div className="flex-shrink-0 mt-0.5">{getIcon(notification.type)}</div>
         <div className="flex-1">
           <p className="font-semibold text-gray-800 text-sm">
             {notification.title}

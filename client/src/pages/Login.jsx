@@ -2,6 +2,8 @@ import { useState } from "react";
 import api from "../api/axios";
 import useAuth from "../hooks/useAuth";
 import { Link, useNavigate } from "react-router-dom";
+import { useToast } from "../components/Toast";
+import { Mail, Lock, LogIn } from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -9,6 +11,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { error, success } = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,20 +27,22 @@ export default function Login() {
 
       // Call the login function from useAuth (assuming it handles user state)
       login(data);
+      success("Login successful! Welcome back.");
       navigate("/feed");
-    } catch (error) {
-      console.error("Login error:", error);
-      alert(error.response?.data?.message || "गलो इमेल वा पासवर्ड"); // Wrong email or password
+    } catch (err) {
+      console.error("Login error:", err);
+      error(err.response?.data?.message || "गलो इमेल वा पासवर्ड"); // Wrong email or password
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50 flex items-center justify-center px-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 flex items-center justify-center px-4 relative overflow-hidden">
       {/* Background decorative elements */}
-      <div className="absolute top-0 left-0 w-32 h-32 bg-red-600 opacity-10 rounded-full -translate-x-16 -translate-y-16"></div>
-      <div className="absolute bottom-0 right-0 w-40 h-40 bg-yellow-500 opacity-10 rounded-full translate-x-20 translate-y-20"></div>
+      <div className="absolute top-0 left-0 w-40 h-40 bg-blue-600 opacity-20 rounded-full -translate-x-16 -translate-y-16 blur-3xl animate-pulse"></div>
+      <div className="absolute bottom-0 right-0 w-48 h-48 bg-purple-500 opacity-20 rounded-full translate-x-20 translate-y-20 blur-3xl animate-pulse"></div>
+      <div className="absolute top-1/2 left-1/2 w-56 h-56 bg-pink-500 opacity-15 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl animate-pulse"></div>
 
       {/* Mandala pattern overlay */}
       <div
@@ -48,103 +53,65 @@ export default function Login() {
         }}
       ></div>
 
-      <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md relative z-10 border border-orange-200">
-        {/* Nepali flag inspired header */}
-        <div className="flex justify-center mb-6">
-          <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center relative">
-            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-              <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
-                <div className="w-4 h-4 bg-white rounded-full"></div>
+      <div className="bg-white/90 backdrop-blur-xl p-10 rounded-3xl shadow-2xl w-full max-w-md relative z-10 border-3 border-purple-200">
+        {/* Modern header icon */}
+        <div className="flex justify-center mb-8">
+          <div className="w-20 h-20 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-3xl flex items-center justify-center shadow-2xl transform hover:scale-110 transition-transform">
+            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
+                <span className="text-white text-2xl font-bold">🔐</span>
               </div>
-            </div>
-            {/* Sun rays */}
-            <div className="absolute inset-0">
-              {[...Array(12)].map((_, i) => (
-                <div
-                  key={i}
-                  className="absolute w-1 h-4 bg-red-600 left-1/2 top-0 -translate-x-1/2 -translate-y-1"
-                  style={{
-                    transform: `translateX(-50%) translateY(-2px) rotate(${
-                      i * 30
-                    }deg)`,
-                  }}
-                ></div>
-              ))}
             </div>
           </div>
         </div>
 
-        <h1 className="text-3xl font-bold text-center text-red-700 mb-2 font-sans">
-          लगइन गर्नुहोस्
+        <h1 className="text-4xl font-bold text-center bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-3 font-sans">
+          🙏 लगइन गर्नुहोस्
         </h1>
-        <p className="text-center text-gray-600 mb-6 text-sm">
-          (Login to Rupandehi Portal)
+        <p className="text-center text-gray-700 mb-8 text-lg font-medium">
+          (Login to Sanket)
         </p>
 
-        <form className="space-y-5" onSubmit={handleSubmit}>
-          <div className="relative">
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          <div className="relative group">
             <input
               type="email"
-              placeholder="इमेल ठेगाना"
+              placeholder="📧 इमेल ठेगाना"
               value={email}
-              className="w-full px-4 py-3 border-2 border-orange-200 rounded-xl focus:ring-2 focus:ring-red-600 focus:border-red-600 transition-all duration-300 bg-white pl-12"
+              className="w-full px-5 py-4 border-3 border-purple-200 rounded-xl focus:ring-4 focus:ring-purple-300 focus:border-purple-500 transition-all duration-300 bg-white/50 backdrop-blur-sm pl-14 text-lg font-medium group-hover:border-purple-300 shadow-lg"
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={isLoading}
             />
-            <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                />
-              </svg>
+            <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-purple-500 group-hover:text-purple-600 transition-colors">
+              <Mail className="w-6 h-6" />
             </div>
           </div>
 
-          <div className="relative">
+          <div className="relative group">
             <input
               type="password"
-              placeholder="पासवर्ड"
+              placeholder="🔒 पासवर्ड"
               value={password}
-              className="w-full px-4 py-3 border-2 border-orange-200 rounded-xl focus:ring-2 focus:ring-red-600 focus:border-red-600 transition-all duration-300 bg-white pl-12"
+              className="w-full px-5 py-4 border-3 border-purple-200 rounded-xl focus:ring-4 focus:ring-purple-300 focus:border-purple-500 transition-all duration-300 bg-white/50 backdrop-blur-sm pl-14 text-lg font-medium group-hover:border-purple-300 shadow-lg"
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={isLoading}
             />
-            <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                />
-              </svg>
+            <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-purple-500 group-hover:text-purple-600 transition-colors">
+              <Lock className="w-6 h-6" />
             </div>
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-gradient-to-r from-red-600 to-orange-600 text-white py-3 rounded-xl hover:from-red-700 hover:to-orange-700 transition-all duration-300 font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            className="w-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white py-4 rounded-xl hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 transition-all duration-300 font-bold text-xl shadow-2xl hover:shadow-3xl transform hover:-translate-y-1 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-3 border-2 border-purple-400"
           >
             {isLoading ? (
-              <div className="flex items-center justify-center">
+              <>
                 <svg
-                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  className="animate-spin h-6 w-6 text-white"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -163,10 +130,13 @@ export default function Login() {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   ></path>
                 </svg>
-                लगइन हुँदैछ...
-              </div>
+                ✨ लगइन हुँदैछ...
+              </>
             ) : (
-              "लगइन गर्नुहोस्"
+              <>
+                <LogIn className="w-5 h-5" />
+                लगइन गर्नुहोस्
+              </>
             )}
           </button>
         </form>
@@ -176,7 +146,7 @@ export default function Login() {
             खाता छैन?{" "}
             <Link
               to="/register"
-              className="text-red-600 font-semibold hover:text-red-700 underline transition-colors duration-300"
+              className="text-blue-700 font-semibold hover:text-blue-800 underline transition-colors duration-300"
             >
               दर्ता गर्नुहोस्
             </Link>

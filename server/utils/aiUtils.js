@@ -10,7 +10,7 @@ export const analyzeImageCategory = async (imageUrl) => {
       return "Other";
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
     const prompt = `Analyze this image and determine which category it belongs to. 
     Categories are: "Road Management", "Waste Management", "Electricity", "Water Supply", or "Other".
@@ -76,7 +76,7 @@ export const generateDescriptionAI = async (imageUrl) => {
       return "Issue detected in the image. Please provide more details.";
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
     const prompt = `Analyze this image of a community issue in Rupandehi District, Nepal. 
     Generate a clear, concise description in English (or Nepali if appropriate) that describes:
@@ -144,7 +144,7 @@ export const detectDuplicateIssue = async (lat, lng, imageUrl) => {
         // Compare with the most recent nearby issue
         const mostRecentIssue = nearbyIssues[0];
         if (mostRecentIssue.image) {
-          const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+          const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
           // Fetch both images
           const [image1Response, image2Response] = await Promise.all([
