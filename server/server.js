@@ -13,6 +13,9 @@ import upvoteRoutes from "./routes/upvoteRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import timelineRoutes from "./routes/timelineRoutes.js";
+import evidenceRoutes from "./routes/evidenceRoutes.js";
+import priorityRoutes from "./routes/priorityRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -39,6 +42,9 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/upvotes", upvoteRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/timeline", timelineRoutes);
+app.use("/api/evidence", evidenceRoutes);
+app.use("/api/priority", priorityRoutes);
 
 // Start Server
 const PORT = process.env.PORT;

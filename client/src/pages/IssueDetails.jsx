@@ -7,6 +7,9 @@ import { getImageUrl } from "../utils/imageUtils";
 import SuccessStoryShare from "../components/SuccessStoryShare";
 import useAuth from "../hooks/useAuth";
 import { useToast } from "../components/Toast";
+import IssueTimeline from "../components/IssueTimeline";
+import IssueEvidence from "../components/IssueEvidence";
+import PriorityDisplay from "../components/PriorityDisplay";
 import { MapPin, Heart, Clock, CheckCircle2, AlertCircle, Star, MessageCircle, X } from "lucide-react";
 
 export default function IssueDetails() {
@@ -158,7 +161,11 @@ export default function IssueDetails() {
       success("Comment added successfully!");
     } catch (err) {
       console.error("Error adding comment:", err);
-      error("Failed to add comment. Please try again.");
+      if (err.response?.status === 401) {
+        error("Your session has expired. Please login again.");
+      } else {
+        error(err.response?.data?.message || "Failed to add comment. Please try again.");
+      }
     }
   };
 
@@ -550,6 +557,21 @@ export default function IssueDetails() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Priority Analysis Section */}
+        <div className="mt-6">
+          <PriorityDisplay issueId={id} />
+        </div>
+
+        {/* Timeline Section */}
+        <div className="mt-6">
+          <IssueTimeline issueId={id} />
+        </div>
+
+        {/* Community Evidence Section */}
+        <div className="mt-6">
+          <IssueEvidence issueId={id} />
         </div>
 
         {/* Comments Section */}

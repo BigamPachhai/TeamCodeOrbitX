@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import api from "../api/axios";
 import MapPicker from "../components/MapPicker";
+import IssueTemplates from "../components/IssueTemplates";
 import { categories } from "../data/categories";
 import { getAllWards, getLocationsByWard } from "../data/rupandehiWards";
 import { useToast } from "../components/Toast";
@@ -37,7 +38,15 @@ export default function ReportIssue() {
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [gettingLocation, setGettingLocation] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
+  const [showTemplates, setShowTemplates] = useState(false);
   const { success, error, warning, info } = useToast();
+
+  const handleTemplateSelect = (template) => {
+    setSelectedCategory(template.category);
+    setDescription(template.description);
+    setShowTemplates(false);
+    success("Template selected! Review and customize the details before submitting.");
+  };
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -352,6 +361,13 @@ export default function ReportIssue() {
           </div>
         </div>
 
+        {/* Templates Section */}
+        {showTemplates && (
+          <div className="mb-6">
+            <IssueTemplates onSelectTemplate={handleTemplateSelect} />
+          </div>
+        )}
+
         {/* Main Form Container */}
         <div className="bg-white border border-gray-200 shadow-sm">
           {/* Form Content */}
@@ -361,6 +377,31 @@ export default function ReportIssue() {
               {currentStep === 1 && (
                 <div className="space-y-6">
                   <div className="border-b border-gray-200 pb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h2 className="text-xl font-bold text-[#003865]">
+                        Issue Documentation
+                      </h2>
+                      {!showTemplates && (
+                        <button
+                          type="button"
+                          onClick={() => setShowTemplates(!showTemplates)}
+                          className="px-4 py-2 bg-blue-50 text-[#003865] border border-blue-200 rounded hover:bg-blue-100 transition-colors text-sm font-semibold flex items-center gap-2"
+                        >
+                          <FileText className="w-4 h-4" />
+                          Use Template
+                        </button>
+                      )}
+                      {showTemplates && (
+                        <button
+                          type="button"
+                          onClick={() => setShowTemplates(false)}
+                          className="px-4 py-2 bg-gray-100 text-gray-700 border border-gray-300 rounded hover:bg-gray-200 transition-colors text-sm font-semibold flex items-center gap-2"
+                        >
+                          <X className="w-4 h-4" />
+                          Hide Templates
+                        </button>
+                      )}
+                    </div>
                     <h2 className="text-xl font-bold text-[#003865] mb-2">
                       Issue Documentation
                     </h2>

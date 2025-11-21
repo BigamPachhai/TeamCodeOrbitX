@@ -3,6 +3,7 @@ import BeforeAfter from "../models/BeforeAfter.js";
 import User from "../models/User.js";
 import Notification from "../models/Notification.js";
 import Review from "../models/Review.js";
+import IssueHistory from "../models/IssueHistory.js";
 import cloudinary from "../config/cloudinary.js";
 
 export const getAllIssues = async (req, res) => {
@@ -35,7 +36,7 @@ export const getAllIssues = async (req, res) => {
 export const updateIssueStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, notes } = req.body;
 
     if (!["pending", "in-progress", "resolved"].includes(status)) {
       return res.status(400).json({
@@ -52,6 +53,15 @@ export const updateIssueStatus = async (req, res) => {
     const oldStatus = issue.status;
     issue.status = status;
     await issue.save();
+
+    // Record status change in history
+    await IssueHistory.create({
+      issue: id,
+      status: status,
+      changedBy: req.user._id,
+      changeType: "status_change",
+      notes: notes || undefined,
+    });
 
     const updatedIssue = await Issue.findById(id)
       .populate("user", "fullName email avatar")
@@ -213,6 +223,9 @@ export const getAllReviews = async (req, res) => {
 };
 
 // New function to upload both before and after photos
+// Import IssueHistory for status tracking
+import IssueHistory from "../models/IssueHistory.js";
+
 export const uploadCompletionPhotos = async (req, res) => {
   try {
     const { id } = req.params;

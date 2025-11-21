@@ -71,6 +71,9 @@ export const createIssue = async (req, res) => {
       });
     }
 
+    // Create initial history entry
+    const IssueHistory = (await import("../models/IssueHistory.js")).default;
+
     // Save Issue
     const issue = await Issue.create({
       user: req.user._id,
@@ -82,6 +85,16 @@ export const createIssue = async (req, res) => {
       lng,
       image: uploadedImage,
       isAnonymous: req.body.isAnonymous === "true" || req.body.isAnonymous === true,
+    });
+
+    // Create initial history entry
+    const IssueHistory = (await import("../models/IssueHistory.js")).default;
+    await IssueHistory.create({
+      issue: issue._id,
+      status: "pending",
+      changedBy: req.user._id,
+      changeType: "created",
+      notes: "Issue reported",
     });
 
     // Award 10 points for reporting a new issue
@@ -250,37 +263,31 @@ export const exportIssuePDF = async (req, res) => {
   }
 };
 
-/* ============================================================
-   GET ISSUE TEMPLATE
-============================================================ */
-export const getIssueTemplate = async (req, res) => {
-  try {
-    const { category } = req.params;
-    const template = getTemplate(category || "Other");
-
-    res.json({
-      success: true,
-      template,
-    });
-  } catch (error) {
-    console.error("Error getting template:", error);
-    res.status(500).json({ message: "Error getting template", error: error.message });
-  }
-};
 
 /* ============================================================
    GET ALL ISSUE TEMPLATES
 ============================================================ */
 export const getAllIssueTemplates = async (req, res) => {
   try {
-    const templates = getAllTemplates();
-
-    res.json({
-      success: true,
-      templates,
-    });
+    const { issueTemplates } = await import("../data/issueTemplates.js");
+    res.json(issueTemplates);
   } catch (error) {
     console.error("Error getting templates:", error);
     res.status(500).json({ message: "Error getting templates", error: error.message });
+  }
+};
+
+/* ============================================================
+   GET TEMPLATES BY CATEGORY
+============================================================ */
+export const getIssueTemplate = async (req, res) => {
+  try {
+    const { category } = req.params;
+    const { getTemplatesByCategory } = await import("../data/issueTemplates.js");
+    const templates = getTemplatesByCategory(category);
+    res.json(templates);
+  } catch (error) {
+    console.error("Error getting template:", error);
+    res.status(500).json({ message: "Error getting template", error: error.message });
   }
 };
