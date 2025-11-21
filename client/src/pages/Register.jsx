@@ -136,11 +136,12 @@ export default function Register() {
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-[#003865] text-white py-3 rounded border border-[#003865] hover:bg-[#002D4F] transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
-          >
+          <div className="flex justify-center">
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="px-8 bg-[#003865] text-white py-3 rounded border border-[#003865] hover:bg-[#002D4F] transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+            >
             {isLoading ? (
               <>
                 <svg
@@ -171,7 +172,8 @@ export default function Register() {
                 खाता दर्ता गर्नुहोस्
               </>
             )}
-          </button>
+            </button>
+          </div>
         </form>
 
         <div className="mt-6 pt-5 border-t border-gray-200">

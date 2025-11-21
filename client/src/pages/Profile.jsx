@@ -1,4 +1,5 @@
 import useAuth from "../hooks/useAuth";
+import PushNotificationManager from "../components/PushNotificationManager";
 import AchievementShare from "../components/AchievementShare";
 import { getBadge } from "../utils/badges";
 import { User, Mail, Award, TrendingUp, CheckCircle } from "lucide-react";
@@ -155,6 +156,11 @@ export default function Profile() {
                   </span>
                 </div>
               </div>
+            </div>
+
+            {/* Push Notifications */}
+            <div className="bg-white border border-gray-200 shadow-sm p-5 mb-5">
+              <PushNotificationManager />
             </div>
 
             {/* Quick Actions */}

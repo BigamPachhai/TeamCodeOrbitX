@@ -16,6 +16,9 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 import timelineRoutes from "./routes/timelineRoutes.js";
 import evidenceRoutes from "./routes/evidenceRoutes.js";
 import priorityRoutes from "./routes/priorityRoutes.js";
+import predictionRoutes from "./routes/predictionRoutes.js";
+import budgetRoutes from "./routes/budgetRoutes.js";
+import pushRoutes from "./routes/pushRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -45,6 +48,9 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/timeline", timelineRoutes);
 app.use("/api/evidence", evidenceRoutes);
 app.use("/api/priority", priorityRoutes);
+app.use("/api/predictions", predictionRoutes);
+app.use("/api/budget", budgetRoutes);
+app.use("/api/notifications", pushRoutes);
 
 // Start Server
 const PORT = process.env.PORT;

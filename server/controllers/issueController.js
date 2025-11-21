@@ -71,13 +71,11 @@ export const createIssue = async (req, res) => {
       });
     }
 
-    // Create initial history entry
-    const IssueHistory = (await import("../models/IssueHistory.js")).default;
-
     // Save Issue
     const issue = await Issue.create({
       user: req.user._id,
       description,
+      municipality: req.body.municipality || "",
       category,
       ward: req.body.ward || "",
       locationName,

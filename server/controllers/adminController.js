@@ -90,13 +90,26 @@ export const updateIssueStatus = async (req, res) => {
       }
 
       if (notificationType) {
-        await Notification.create({
+        const notif = await Notification.create({
           user: issue.user._id,
           issue: issue._id,
           type: notificationType,
           title,
           message,
         });
+
+        // Multi-channel notifications disabled
+        // To enable: Uncomment and configure notification services
+        // try {
+        //   const { sendMultiChannelNotification } = await import("../utils/notificationUtils.js");
+        //   await sendMultiChannelNotification(issue.user, {
+        //     title,
+        //     message,
+        //     issue: { _id: issue._id, category: issue.category, locationName: issue.locationName },
+        //   });
+        // } catch (error) {
+        //   console.error("Error sending multi-channel notification:", error);
+        // }
       }
     }
 
@@ -223,9 +236,6 @@ export const getAllReviews = async (req, res) => {
 };
 
 // New function to upload both before and after photos
-// Import IssueHistory for status tracking
-import IssueHistory from "../models/IssueHistory.js";
-
 export const uploadCompletionPhotos = async (req, res) => {
   try {
     const { id } = req.params;

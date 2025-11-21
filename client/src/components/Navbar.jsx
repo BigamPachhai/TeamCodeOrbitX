@@ -3,7 +3,7 @@ import useAuth from "../hooks/useAuth";
 import Notifications from "./Notifications";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useTranslation } from "react-i18next";
-import { Home, Info, HelpCircle, Mail, BarChart3, LogIn, UserPlus, LogOut, FileText, MapPin, TrendingUp, Award, Shield } from "lucide-react";
+import { Home, Info, HelpCircle, Mail, BarChart3, LogIn, UserPlus, LogOut, FileText, MapPin, TrendingUp, Award, Shield, DollarSign, Brain } from "lucide-react";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -99,6 +99,14 @@ export default function Navbar() {
               <Link className="px-3 py-2 hover:bg-white/10 transition-colors text-sm font-medium whitespace-nowrap" to="/heatmap">
                 <MapPin className="w-4 h-4 inline mr-1" />
                 {t("common.heatmap")}
+              </Link>
+              <Link className="px-3 py-2 hover:bg-white/10 transition-colors text-sm font-medium whitespace-nowrap" to="/predictions">
+                <Brain className="w-4 h-4 inline mr-1" />
+                Predictions
+              </Link>
+              <Link className="px-3 py-2 hover:bg-white/10 transition-colors text-sm font-medium whitespace-nowrap" to="/budget">
+                <DollarSign className="w-4 h-4 inline mr-1" />
+                Budget
               </Link>
               <Link className="px-3 py-2 hover:bg-white/10 transition-colors text-sm font-medium whitespace-nowrap" to="/leaderboard">
                 <TrendingUp className="w-4 h-4 inline mr-1" />

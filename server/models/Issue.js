@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const issueSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    municipality: String,
     category: String,
     ward: String,
     description: String,

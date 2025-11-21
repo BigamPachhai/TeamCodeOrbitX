@@ -17,6 +17,8 @@ import AdminDashboard from "../pages/AdminDashboard";
 import AdminIssueDetails from "../pages/AdminIssueDetails";
 import AdvancedReporting from "../pages/AdvancedReporting";
 import MakeDifference from "../pages/MakeDifference";
+import PredictionDashboard from "../pages/PredictionDashboard";
+import BudgetDashboard from "../pages/BudgetDashboard";
 
 import ProtectedRoute from "../components/ProtectedRoute";
 
@@ -29,6 +31,8 @@ export default function AppRouter() {
       <Route path="/faq" element={<FAQ />} />
       <Route path="/contact" element={<ContactGov />} />
       <Route path="/stats" element={<Statistics />} />
+      <Route path="/predictions" element={<PredictionDashboard />} />
+      <Route path="/budget" element={<BudgetDashboard />} />
       <Route path="/advanced-reporting" element={<AdvancedReporting />} />
       <Route path="/make-difference" element={<MakeDifference />} />
 

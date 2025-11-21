@@ -3,8 +3,12 @@ import { useTranslation } from "react-i18next";
 import api from "../api/axios";
 import MapPicker from "../components/MapPicker";
 import IssueTemplates from "../components/IssueTemplates";
+import VoiceRecorder from "../components/VoiceRecorder";
+import QRCodeScanner from "../components/QRCodeScanner";
 import { categories } from "../data/categories";
+import { saveOfflineIssue, isOnline, setupAutoSync } from "../utils/offlineStorage";
 import { getAllWards, getLocationsByWard } from "../data/rupandehiWards";
+import { getAllMunicipalities, getWardsByMunicipality } from "../data/municipalities";
 import { useToast } from "../components/Toast";
 import {
   Upload,
@@ -22,6 +26,7 @@ import {
   Trash2,
   Sparkles,
   FileText,
+  QrCode,
 } from "lucide-react";
 
 export default function ReportIssue() {
@@ -32,6 +37,7 @@ export default function ReportIssue() {
   const [lat, setLat] = useState("");
   const [lng, setLng] = useState("");
   const [loading, setLoading] = useState(false);
+  const [selectedMunicipality, setSelectedMunicipality] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedWard, setSelectedWard] = useState("");
   const [showMap, setShowMap] = useState(false);
@@ -39,7 +45,28 @@ export default function ReportIssue() {
   const [gettingLocation, setGettingLocation] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [showQRScanner, setShowQRScanner] = useState(false);
   const { success, error, warning, info } = useToast();
+
+  // Setup offline sync on mount
+  useEffect(() => {
+    const syncFunction = async (issueData) => {
+      try {
+        const fd = new FormData();
+        Object.keys(issueData).forEach((key) => {
+          if (key === "image" && issueData[key] instanceof File) {
+            fd.append("image", issueData[key]);
+          } else {
+            fd.append(key, issueData[key]);
+          }
+        });
+        await api.post("/issues/create", fd);
+      } catch (err) {
+        throw err;
+      }
+    };
+    setupAutoSync(syncFunction);
+  }, []);
 
   const handleTemplateSelect = (template) => {
     setSelectedCategory(template.category);
@@ -138,9 +165,14 @@ export default function ReportIssue() {
     }
   };
 
+  const handleMunicipalityChange = (e) => {
+    setSelectedMunicipality(e.target.value);
+    setSelectedWard("");
+    setSelectedCategory("");
+  };
+
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
-    setSelectedWard("");
   };
 
   const handleWardChange = (e) => {
@@ -212,6 +244,18 @@ export default function ReportIssue() {
       warning("Please provide a description of the issue");
       return;
     }
+    if (!selectedMunicipality) {
+      warning("Please select a municipality");
+      return;
+    }
+    if (!selectedCategory) {
+      warning("Please select an issue category");
+      return;
+    }
+    if (!selectedWard) {
+      warning("Please select a ward");
+      return;
+    }
     if (!locationName.trim() || !lat || !lng) {
       warning("Please provide complete location information");
       return;
@@ -219,9 +263,45 @@ export default function ReportIssue() {
 
     setLoading(true);
     try {
+      const issueData = {
+        image,
+        description,
+        municipality: selectedMunicipality || "",
+        category: selectedCategory || "",
+        ward: selectedWard || "",
+        locationName,
+        lat,
+        lng,
+        isAnonymous,
+      };
+
+      // Check if online
+      if (!isOnline()) {
+        // Save offline
+        const offlineId = saveOfflineIssue(issueData);
+        success(
+          "Issue saved offline! It will be automatically submitted when you're back online."
+        );
+        
+        // Reset form
+        setImage(null);
+        setDescription("");
+        setSelectedMunicipality("");
+        setSelectedCategory("");
+        setSelectedWard("");
+        setLocationName("");
+        setLat("");
+        setLng("");
+        setIsAnonymous(false);
+        setCurrentStep(1);
+        setLoading(false);
+        return;
+      }
+
       const fd = new FormData();
       fd.append("image", image);
       fd.append("description", description);
+      fd.append("municipality", selectedMunicipality || "");
       fd.append("category", selectedCategory || "");
       fd.append("ward", selectedWard || "");
       fd.append("locationName", locationName);
@@ -239,6 +319,7 @@ export default function ReportIssue() {
       // Reset form
       setImage(null);
       setDescription("");
+      setSelectedMunicipality("");
       setSelectedCategory("");
       setSelectedWard("");
       setLocationName("");
@@ -269,8 +350,8 @@ export default function ReportIssue() {
       }
     }
     if (currentStep === 2) {
-      if (!selectedCategory || !selectedWard || !locationName || !lat || !lng) {
-        warning("Please complete all location information before proceeding");
+      if (!selectedMunicipality || !selectedCategory || !selectedWard || !locationName || !lat || !lng) {
+        warning("Please complete all location information (Municipality, Ward, Category, and location) before proceeding");
         return;
       }
     }
@@ -501,9 +582,22 @@ export default function ReportIssue() {
                         Detailed Description
                       </label>
                       <span className="text-sm text-gray-500 font-medium">
-                        ✍️ Write yourself or use AI
+                        Write yourself, use AI, or record voice
                       </span>
                     </div>
+
+                    {/* Voice Recorder */}
+                    <div className="mb-4">
+                      <VoiceRecorder
+                        onTranscript={(transcript) => {
+                          if (transcript) {
+                            setDescription((prev) => prev ? `${prev}\n${transcript}` : transcript);
+                          }
+                        }}
+                        language="ne-NP"
+                      />
+                    </div>
+
                     <textarea
                       id="description-textarea"
                       name="description"
@@ -698,7 +792,50 @@ export default function ReportIssue() {
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    {/* Municipality Selection */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-900 mb-2 uppercase tracking-wide">
+                        Municipality
+                        <span className="text-red-600 ml-1">*</span>
+                      </label>
+                      <select
+                        className="w-full border border-gray-300 p-2.5 rounded focus:border-[#003865] focus:ring-1 focus:ring-[#003865] focus:outline-none bg-white text-sm"
+                        value={selectedMunicipality}
+                        onChange={handleMunicipalityChange}
+                        required
+                      >
+                        <option value="">Select municipality</option>
+                        {getAllMunicipalities().map((municipality) => (
+                          <option key={municipality} value={municipality}>
+                            {municipality}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Ward Selection */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-900 mb-2 uppercase tracking-wide">
+                        Municipal Ward
+                        <span className="text-red-600 ml-1">*</span>
+                      </label>
+                      <select
+                        className="w-full border border-gray-300 p-2.5 rounded focus:border-[#003865] focus:ring-1 focus:ring-[#003865] focus:outline-none bg-white text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        value={selectedWard}
+                        onChange={handleWardChange}
+                        disabled={!selectedMunicipality}
+                        required
+                      >
+                        <option value="">{selectedMunicipality ? "Select ward number" : "Select municipality first"}</option>
+                        {selectedMunicipality && getWardsByMunicipality(selectedMunicipality).map((ward) => (
+                          <option key={ward} value={ward}>
+                            {ward}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
                     {/* Category Selection */}
                     <div>
                       <label className="block text-sm font-semibold text-gray-900 mb-2 uppercase tracking-wide">
@@ -715,27 +852,6 @@ export default function ReportIssue() {
                         {categories.map((category) => (
                           <option key={category} value={category}>
                             {category}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Ward Selection */}
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-900 mb-2 uppercase tracking-wide">
-                        Municipal Ward
-                        <span className="text-red-600 ml-1">*</span>
-                      </label>
-                      <select
-                        className="w-full border border-gray-300 p-2.5 rounded focus:border-[#003865] focus:ring-1 focus:ring-[#003865] focus:outline-none bg-white text-sm"
-                        value={selectedWard}
-                        onChange={handleWardChange}
-                        required
-                      >
-                        <option value="">Select ward number</option>
-                        {getAllWards().map((ward) => (
-                          <option key={ward} value={ward}>
-                            Ward {ward}
                           </option>
                         ))}
                       </select>
@@ -1010,6 +1126,31 @@ export default function ReportIssue() {
             </form>
           </div>
         </div>
+
+        {/* QR Code Scanner Modal */}
+        {showQRScanner && (
+          <QRCodeScanner
+            onScan={(data) => {
+              // Parse QR code data (assuming JSON format)
+              try {
+                const parsed = JSON.parse(data);
+                if (parsed.municipality) setSelectedMunicipality(parsed.municipality);
+                if (parsed.category) setSelectedCategory(parsed.category);
+                if (parsed.ward) setSelectedWard(parsed.ward);
+                if (parsed.locationName) setLocationName(parsed.locationName);
+                if (parsed.lat) setLat(parsed.lat);
+                if (parsed.lng) setLng(parsed.lng);
+                success("QR Code scanned! Form fields filled automatically.");
+              } catch (e) {
+                // If not JSON, treat as location name
+                setLocationName(data);
+                info("QR Code scanned. Location name added.");
+              }
+              setShowQRScanner(false);
+            }}
+            onClose={() => setShowQRScanner(false)}
+          />
+        )}
 
         {/* Footer Note */}
         <div className="text-center mt-6 pt-4 border-t border-gray-200">

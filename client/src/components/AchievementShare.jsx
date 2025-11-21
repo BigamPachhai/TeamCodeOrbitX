@@ -64,47 +64,55 @@ export default function AchievementShare({ user, rank, totalUsers }) {
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, 1200, 630);
 
-    // Header with official color
-    ctx.fillStyle = "#1e40af";
+    // Header with government blue
+    ctx.fillStyle = "#003865";
     ctx.fillRect(0, 0, 1200, 120);
+    
+    // Red accent border at bottom of header
+    ctx.fillStyle = "#DC143C";
+    ctx.fillRect(0, 116, 1200, 4);
 
     // Title
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 48px 'Arial', sans-serif";
+    ctx.font = "bold 44px 'Arial', sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("COMMUNITY SERVICE RECOGNITION", 600, 70);
+    ctx.fillText("COMMUNITY SERVICE RECOGNITION", 600, 65);
+    ctx.font = "20px 'Arial', sans-serif";
+    ctx.fillText("रुपन्देही जिल्ला | Rupandehi District Administration Office", 600, 95);
 
     // Achievement content
-    ctx.fillStyle = "#1f2937";
-    ctx.font = "bold 42px 'Arial', sans-serif";
+    ctx.fillStyle = "#003865";
+    ctx.font = "bold 38px 'Arial', sans-serif";
     ctx.fillText(user.fullName || "Community Member", 600, 200);
 
     // Badge
-    ctx.fillStyle = "#059669";
-    ctx.font = "bold 36px 'Arial', sans-serif";
-    ctx.fillText(getBadge(user.points), 600, 260);
+    ctx.fillStyle = "#003865";
+    ctx.font = "bold 32px 'Arial', sans-serif";
+    ctx.fillText(getBadge(user.points).toUpperCase(), 600, 250);
 
     // Points display
-    ctx.fillStyle = "#1e40af";
+    ctx.fillStyle = "#003865";
     ctx.font = "bold 72px 'Arial', sans-serif";
-    ctx.fillText(`${user.points}`, 600, 350);
+    ctx.fillText(`${user.points}`, 600, 340);
     ctx.fillStyle = "#6b7280";
-    ctx.font = "32px 'Arial', sans-serif";
-    ctx.fillText("Service Points", 600, 390);
+    ctx.font = "28px 'Arial', sans-serif";
+    ctx.fillText("Service Points", 600, 375);
 
     // Rank information
     if (rank) {
-      ctx.fillStyle = "#374151";
-      ctx.font = "28px 'Arial', sans-serif";
-      ctx.fillText(`Position ${rank} of ${totalUsers} Contributors`, 600, 450);
+      ctx.fillStyle = "#059669";
+      ctx.font = "26px 'Arial', sans-serif";
+      ctx.fillText(`Position ${rank} of ${totalUsers} Contributors`, 600, 430);
     }
 
     // Official footer
     ctx.fillStyle = "#6b7280";
-    ctx.font = "24px 'Arial', sans-serif";
-    ctx.fillText("Municipal Corporation Public Service Portal", 600, 520);
+    ctx.font = "22px 'Arial', sans-serif";
+    ctx.fillText("नेपाल सरकार | Government of Nepal", 600, 500);
     ctx.font = "20px 'Arial', sans-serif";
-    ctx.fillText("Community Engagement System", 600, 550);
+    ctx.fillText("Rupandehi District Administration Office", 600, 530);
+    ctx.font = "18px 'Arial', sans-serif";
+    ctx.fillText("Public Grievance Management System", 600, 560);
 
     // Convert to image and download
     canvas.toBlob(
@@ -125,7 +133,7 @@ export default function AchievementShare({ user, rank, totalUsers }) {
     <>
       <button
         onClick={() => setShowShareModal(true)}
-        className="px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors font-medium flex items-center gap-2 border border-blue-600 shadow-sm whitespace-nowrap"
+        className="px-4 py-2 bg-[#003865] text-white rounded hover:bg-[#004d8c] transition-colors font-semibold flex items-center gap-2 border border-[#003865] shadow-sm whitespace-nowrap text-sm"
       >
         <Share2 className="w-4 h-4 flex-shrink-0" />
         <span>Share Recognition</span>
@@ -133,22 +141,22 @@ export default function AchievementShare({ user, rank, totalUsers }) {
 
       {showShareModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-            {/* Header */}
-            <div className="bg-blue-800 px-6 py-4 text-white">
+          <div className="bg-white rounded shadow-lg max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-gray-200">
+            {/* Official Government Header */}
+            <div className="bg-[#003865] border-b-4 border-[#DC143C] px-6 py-4 text-white">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3 flex-wrap">
-                  <div className="w-10 h-10 bg-white/10 rounded flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 bg-white/10 rounded flex items-center justify-center flex-shrink-0 border border-white/20">
                     <Share2 className="w-5 h-5" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h2 className="text-xl font-semibold whitespace-nowrap">Share Service Recognition</h2>
-                    <p className="text-blue-200 text-sm">Distribute your community contribution achievement</p>
+                    <h2 className="text-lg font-bold whitespace-nowrap uppercase tracking-wide">Share Service Recognition</h2>
+                    <p className="text-blue-100 text-xs mt-0.5">रुपन्देही जिल्ला | Rupandehi District Administration Office</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowShareModal(false)}
-                  className="text-white/80 hover:text-white w-8 h-8 flex items-center justify-center rounded hover:bg-white/10 transition-colors"
+                  className="text-white/80 hover:text-white w-8 h-8 flex items-center justify-center rounded hover:bg-white/10 transition-colors border border-white/20"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -156,47 +164,48 @@ export default function AchievementShare({ user, rank, totalUsers }) {
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
               {/* Recognition Card */}
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 rounded-lg p-6 mb-6">
+              <div className="bg-white border-2 border-gray-200 rounded shadow-sm p-6 mb-6">
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="w-16 h-16 bg-[#003865] rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-[#DC143C]">
                     <Award className="w-8 h-8 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Service Recognition</h3>
-                  <p className="text-lg text-gray-700 font-semibold">{user.fullName || "Community Member"}</p>
+                  <h3 className="text-xl font-bold text-[#003865] mb-2 uppercase tracking-wide">Service Recognition</h3>
+                  <p className="text-base text-gray-900 font-semibold mb-4">{user.fullName || "Community Member"}</p>
                   
-                  <div className="bg-white rounded-lg p-4 my-4 border border-blue-200">
-                    <p className="text-blue-800 font-bold text-lg mb-1" style={{ fontSize: '1.25rem', lineHeight: '1.75rem' }}>
+                  <div className="bg-gray-50 border-2 border-gray-300 rounded p-4 my-4">
+                    <p className="text-[#003865] font-bold text-base mb-1 uppercase tracking-wide">
                       {getBadge(user.points)}
                     </p>
-                    <p className="text-3xl font-bold text-blue-600">{user.points}</p>
-                    <p className="text-gray-600">Service Points</p>
+                    <p className="text-3xl font-bold text-[#003865]">{user.points}</p>
+                    <p className="text-gray-600 text-sm mt-1">Service Points</p>
                   </div>
 
                   {rank && (
-                    <div className="bg-white rounded-lg p-3 border border-green-200">
-                      <p className="text-green-800 font-semibold flex items-center justify-center gap-2">
+                    <div className="bg-green-50 border-2 border-green-300 rounded p-3">
+                      <p className="text-green-800 font-semibold flex items-center justify-center gap-2 text-sm">
                         <CheckCircle className="w-4 h-4 flex-shrink-0" />
                         <span>Position {rank} of {totalUsers} Contributors</span>
                       </p>
                     </div>
                   )}
 
-                  <p className="text-gray-600 mt-4 text-sm">
-                    Municipal Corporation Public Service Portal
+                  <p className="text-gray-600 mt-4 text-xs border-t border-gray-200 pt-4">
+                    नेपाल सरकार | Government of Nepal<br />
+                    Rupandehi District Administration Office
                   </p>
                 </div>
               </div>
 
               {/* Share Options */}
               <div className="space-y-4">
-                <h4 className="text-lg font-semibold text-gray-900 mb-3">Distribution Channels</h4>
+                <h4 className="text-base font-bold text-[#003865] mb-3 uppercase tracking-wide border-b border-gray-200 pb-2">Distribution Channels</h4>
                 
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     onClick={shareOnFacebook}
-                    className="flex items-center justify-center gap-2 p-3 bg-[#1877F2] text-white rounded-lg hover:bg-[#166FE5] transition-colors text-sm font-medium border border-[#166FE5] shadow-sm whitespace-nowrap"
+                    className="flex items-center justify-center gap-2 p-3 bg-[#1877F2] text-white rounded hover:bg-[#166FE5] transition-colors text-sm font-semibold border border-[#166FE5] shadow-sm whitespace-nowrap"
                   >
                     <Facebook className="w-4 h-4 flex-shrink-0" />
                     <span>Facebook</span>
@@ -204,7 +213,7 @@ export default function AchievementShare({ user, rank, totalUsers }) {
 
                   <button
                     onClick={shareOnTwitter}
-                    className="flex items-center justify-center gap-2 p-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium border border-gray-700 shadow-sm whitespace-nowrap"
+                    className="flex items-center justify-center gap-2 p-3 bg-black text-white rounded hover:bg-gray-800 transition-colors text-sm font-semibold border border-gray-700 shadow-sm whitespace-nowrap"
                   >
                     <Twitter className="w-4 h-4 flex-shrink-0" />
                     <span>Twitter</span>
@@ -212,7 +221,7 @@ export default function AchievementShare({ user, rank, totalUsers }) {
 
                   <button
                     onClick={shareOnWhatsApp}
-                    className="flex items-center justify-center gap-2 p-3 bg-[#25D366] text-white rounded-lg hover:bg-[#20BD5C] transition-colors text-sm font-medium border border-[#20BD5C] shadow-sm whitespace-nowrap"
+                    className="flex items-center justify-center gap-2 p-3 bg-[#25D366] text-white rounded hover:bg-[#20BD5C] transition-colors text-sm font-semibold border border-[#20BD5C] shadow-sm whitespace-nowrap"
                   >
                     <MessageCircle className="w-4 h-4 flex-shrink-0" />
                     <span>WhatsApp</span>
@@ -220,7 +229,7 @@ export default function AchievementShare({ user, rank, totalUsers }) {
 
                   <button
                     onClick={shareOnLinkedIn}
-                    className="flex items-center justify-center gap-2 p-3 bg-[#0A66C2] text-white rounded-lg hover:bg-[#0959AC] transition-colors text-sm font-medium border border-[#0959AC] shadow-sm whitespace-nowrap"
+                    className="flex items-center justify-center gap-2 p-3 bg-[#0A66C2] text-white rounded hover:bg-[#0959AC] transition-colors text-sm font-semibold border border-[#0959AC] shadow-sm whitespace-nowrap"
                   >
                     <Linkedin className="w-4 h-4 flex-shrink-0" />
                     <span>LinkedIn</span>
@@ -230,7 +239,7 @@ export default function AchievementShare({ user, rank, totalUsers }) {
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     onClick={copyToClipboard}
-                    className="flex items-center justify-center gap-2 p-3 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium border border-gray-600 shadow-sm whitespace-nowrap"
+                    className="flex items-center justify-center gap-2 p-3 bg-gray-700 text-white rounded hover:bg-gray-800 transition-colors text-sm font-semibold border border-gray-600 shadow-sm whitespace-nowrap"
                   >
                     <Copy className="w-4 h-4 flex-shrink-0" />
                     <span>Copy Text</span>
@@ -238,7 +247,7 @@ export default function AchievementShare({ user, rank, totalUsers }) {
 
                   <button
                     onClick={downloadAsImage}
-                    className="flex items-center justify-center gap-2 p-3 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors text-sm font-medium border border-blue-600 shadow-sm whitespace-nowrap"
+                    className="flex items-center justify-center gap-2 p-3 bg-[#003865] text-white rounded hover:bg-[#004d8c] transition-colors text-sm font-semibold border border-[#003865] shadow-sm whitespace-nowrap"
                   >
                     <Download className="w-4 h-4 flex-shrink-0" />
                     <span>Download Certificate</span>
@@ -247,10 +256,10 @@ export default function AchievementShare({ user, rank, totalUsers }) {
               </div>
 
               {/* Message Preview */}
-              <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <p className="text-sm font-medium text-gray-700 mb-2">Message Preview</p>
-                <div className="bg-white p-3 rounded border border-gray-300 max-h-24 overflow-y-auto">
-                  <p className="text-xs text-gray-600 whitespace-pre-line leading-relaxed">
+              <div className="mt-6 p-4 bg-white border-2 border-gray-200 rounded shadow-sm">
+                <p className="text-sm font-bold text-[#003865] mb-2 uppercase tracking-wide">Message Preview</p>
+                <div className="bg-gray-50 p-3 rounded border border-gray-300 max-h-24 overflow-y-auto">
+                  <p className="text-xs text-gray-700 whitespace-pre-line leading-relaxed">
                     {shareText}
                   </p>
                 </div>
@@ -258,14 +267,14 @@ export default function AchievementShare({ user, rank, totalUsers }) {
             </div>
 
             {/* Footer */}
-            <div className="border-t border-gray-200 px-6 py-4 bg-gray-50">
+            <div className="border-t-2 border-gray-200 px-6 py-4 bg-gray-50">
               <div className="flex justify-between items-center">
                 <p className="text-xs text-gray-600">
-                  Official Public Service Communication
+                  Official Public Service Communication | नेपाल सरकार
                 </p>
                 <button
                   onClick={() => setShowShareModal(false)}
-                  className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium border border-gray-600 shadow-sm"
+                  className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-800 transition-colors text-sm font-semibold border border-gray-600 shadow-sm"
                 >
                   Close
                 </button>

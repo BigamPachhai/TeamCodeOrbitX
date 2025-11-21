@@ -1,6 +1,7 @@
 import Navbar from "./components/Navbar";
 import AppRouter from "./router/AppRouter";
 import Footer from "./components/Footer";
+import OfflineIndicator from "./components/OfflineIndicator";
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
       </main>
 
       <Footer />
+      <OfflineIndicator />
     </div>
   );
 }
