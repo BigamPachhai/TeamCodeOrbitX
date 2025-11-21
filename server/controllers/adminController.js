@@ -54,6 +54,85 @@ export const updateIssueStatus = async (req, res) => {
     issue.status = status;
     await issue.save();
 
+    // Automatically allocate budget using AI when issue moves to "in-progress"
+    if (status === "in-progress" && oldStatus !== "in-progress") {
+      try {
+        const Budget = (await import("../models/Budget.js")).default;
+        const { allocateBudgetAI } = await import("../utils/aiUtils.js");
+        
+        // Check if budget already exists
+        const existingBudget = await Budget.findOne({ issue: id });
+        
+        if (!existingBudget) {
+          console.log(`\n🤖 ==========================================`);
+          console.log(`🤖 AUTO-ALLOCATING BUDGET FOR ISSUE ${id}`);
+          console.log(`🤖 ==========================================`);
+          console.log(`   Issue: ${issue.description?.substring(0, 100)}...`);
+          console.log(`   Category: ${issue.category}`);
+          console.log(`   Priority: ${issue.severity}`);
+          console.log(`   Location: ${issue.locationName || issue.municipality}`);
+          
+          const aiAllocation = await allocateBudgetAI(issue);
+          
+          const budgetYear = new Date().getFullYear().toString();
+          
+          // Create detailed notes with AI analysis
+          let notes = `🤖 AI-ALLOCATED BUDGET (${new Date().toLocaleString()})\n\n`;
+          notes += `REASONING:\n${aiAllocation.reasoning}\n\n`;
+          
+          if (aiAllocation.breakdown) {
+            notes += `COST BREAKDOWN:\n`;
+            notes += `- Materials: NPR ${aiAllocation.breakdown.materials?.toLocaleString() || 'N/A'}\n`;
+            notes += `- Labor: NPR ${aiAllocation.breakdown.labor?.toLocaleString() || 'N/A'}\n`;
+            notes += `- Equipment: NPR ${aiAllocation.breakdown.equipment?.toLocaleString() || 'N/A'}\n`;
+            notes += `- Contingency: NPR ${aiAllocation.breakdown.contingency?.toLocaleString() || 'N/A'}\n\n`;
+          }
+          
+          if (aiAllocation.factors) {
+            notes += `ANALYSIS FACTORS:\n`;
+            notes += `- Severity: ${aiAllocation.factors.severity}\n`;
+            notes += `- Complexity: ${aiAllocation.factors.complexity}\n`;
+            notes += `- Urgency: ${aiAllocation.factors.urgency}\n`;
+            notes += `- Estimated Time: ${aiAllocation.factors.estimatedTime} days\n`;
+            if (aiAllocation.factors.teamSize) {
+              notes += `- Team Size: ${aiAllocation.factors.teamSize} workers\n`;
+            }
+            if (aiAllocation.factors.scope) {
+              notes += `- Scope: ${aiAllocation.factors.scope}\n`;
+            }
+            notes += `- Confidence: ${(aiAllocation.confidence * 100).toFixed(1)}%\n`;
+          }
+          
+          await Budget.create({
+            issue: id,
+            department: issue.category || "General",
+            municipality: issue.municipality,
+            category: issue.category,
+            allocatedAmount: aiAllocation.allocatedAmount,
+            estimatedCost: aiAllocation.estimatedCost,
+            budgetYear,
+            notes: notes,
+            status: "allocated",
+          });
+          
+          console.log(`\n✅ ==========================================`);
+          console.log(`✅ BUDGET ALLOCATION COMPLETE`);
+          console.log(`✅ ==========================================`);
+          console.log(`   Issue ID: ${id}`);
+          console.log(`   Allocated Amount: NPR ${aiAllocation.allocatedAmount.toLocaleString()}`);
+          console.log(`   Estimated Cost: NPR ${aiAllocation.estimatedCost.toLocaleString()}`);
+          console.log(`   Confidence: ${(aiAllocation.confidence * 100).toFixed(1)}%`);
+          console.log(`   Status: allocated`);
+          console.log(`✅ ==========================================\n`);
+        } else {
+          console.log(`ℹ️  Budget already exists for issue ${id}, skipping auto-allocation`);
+        }
+      } catch (budgetError) {
+        // Don't fail the status update if budget allocation fails
+        console.error("Error auto-allocating budget:", budgetError);
+      }
+    }
+
     // Record status change in history
     await IssueHistory.create({
       issue: id,

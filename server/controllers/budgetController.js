@@ -1,5 +1,6 @@
 import Budget from "../models/Budget.js";
 import Issue from "../models/Issue.js";
+import { allocateBudgetAI } from "../utils/aiUtils.js";
 
 /**
  * Get budget summary
@@ -9,11 +10,15 @@ export const getBudgetSummary = async (req, res) => {
     const { year } = req.query;
     const budgetYear = year || new Date().getFullYear().toString();
 
+    console.log(`📊 Fetching budget summary for year: ${budgetYear}`);
     const budgets = await Budget.find({ budgetYear });
+    console.log(`📊 Found ${budgets.length} budget records for ${budgetYear}`);
 
     const totalAllocated = budgets.reduce((sum, b) => sum + (b.allocatedAmount || 0), 0);
     const totalSpent = budgets.reduce((sum, b) => sum + (b.spentAmount || 0), 0);
     const totalRemaining = totalAllocated - totalSpent;
+
+    console.log(`📊 Summary: Allocated=${totalAllocated}, Spent=${totalSpent}, Remaining=${totalRemaining}`);
 
     // Group by department
     const departmentBreakdown = {};
@@ -46,7 +51,7 @@ export const getBudgetSummary = async (req, res) => {
       issues: data.issues,
     }));
 
-    res.json({
+    const response = {
       success: true,
       year: budgetYear,
       summary: {
@@ -56,7 +61,10 @@ export const getBudgetSummary = async (req, res) => {
         spentPercentage: totalAllocated > 0 ? (totalSpent / totalAllocated) * 100 : 0,
       },
       departments,
-    });
+    };
+
+    console.log(`📊 Returning budget summary:`, JSON.stringify(response, null, 2));
+    res.json(response);
   } catch (error) {
     console.error("Error getting budget summary:", error);
     res.status(500).json({ message: "Error getting budget summary", error: error.message });

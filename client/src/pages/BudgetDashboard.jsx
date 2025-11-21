@@ -5,21 +5,17 @@ import { useState } from "react";
 
 export default function BudgetDashboard() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["budget", selectedYear],
     queryFn: async () => {
-      // Mock data for demo - replace with actual API
-      return {
-        totalAllocated: 5000000,
-        totalSpent: 3200000,
-        totalRemaining: 1800000,
-        departments: [
-          { name: "Road Department", allocated: 2000000, spent: 1300000, issues: 45 },
-          { name: "Waste Management", allocated: 1500000, spent: 900000, issues: 32 },
-          { name: "Electricity Department", allocated: 1000000, spent: 650000, issues: 28 },
-          { name: "Water Supply", allocated: 500000, spent: 350000, issues: 15 },
-        ],
-      };
+      try {
+        const response = await api.get(`/budget/summary?year=${selectedYear}`);
+        console.log("Budget API Response:", response.data);
+        return response.data;
+      } catch (err) {
+        console.error("Error fetching budget summary:", err);
+        throw err;
+      }
     },
   });
 
@@ -35,6 +31,19 @@ export default function BudgetDashboard() {
               <div className="h-32 bg-gray-100 rounded"></div>
               <div className="h-32 bg-gray-100 rounded"></div>
             </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-red-800 mb-2">Error Loading Budget Data</h2>
+            <p className="text-red-600">{error.response?.data?.message || error.message || "Failed to load budget summary"}</p>
           </div>
         </div>
       </div>
@@ -79,6 +88,22 @@ export default function BudgetDashboard() {
             </select>
           </div>
         </div>
+
+        {/* Info Banner when no data */}
+        {budgetSummary.totalAllocated === 0 && budgetSummary.totalSpent === 0 && (
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 rounded">
+            <div className="flex items-start">
+              <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
+              <div>
+                <h3 className="text-sm font-semibold text-blue-800 mb-1">No Budget Data Yet</h3>
+                <p className="text-sm text-blue-700">
+                  Budgets are automatically allocated using AI when issues are moved to "in-progress" status. 
+                  Make sure your GEMINI_API_KEY is configured in the server environment variables for AI-powered budget allocation.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
@@ -148,8 +173,20 @@ export default function BudgetDashboard() {
           </div>
 
           <div className="p-6">
-            <div className="space-y-4">
-              {departments.map((dept, index) => {
+            {departments.length === 0 ? (
+              <div className="text-center py-12">
+                <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-700 mb-2">No Budget Data Available</h3>
+                <p className="text-gray-500 mb-4">
+                  No budget allocations found for {selectedYear}. Budgets will appear here once issues are allocated budgets.
+                </p>
+                <p className="text-sm text-gray-400">
+                  Budgets are automatically allocated when issues move to "in-progress" status using AI analysis.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {departments.map((dept, index) => {
                 const deptSpentPercentage = dept.allocated > 0
                   ? (dept.spent / dept.allocated) * 100
                   : 0;
@@ -208,7 +245,8 @@ export default function BudgetDashboard() {
                   </div>
                 );
               })}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
