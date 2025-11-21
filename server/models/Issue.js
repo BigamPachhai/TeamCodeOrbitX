@@ -13,7 +13,27 @@ const issueSchema = new mongoose.Schema(
     severity: String,
     status: { type: String, default: "pending" },
   },
-  { timestamps: true }
+
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
 );
+
+// Virtual field for upvote count
+issueSchema.virtual("upvoteCount", {
+  ref: "Upvote",
+  localField: "_id",
+  foreignField: "issue",
+  count: true,
+});
+
+// Virtual field for comments
+issueSchema.virtual("comments", {
+  ref: "Comment",
+  localField: "_id",
+  foreignField: "issue",
+});
 
 export default mongoose.model("Issue", issueSchema);

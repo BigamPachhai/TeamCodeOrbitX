@@ -25,3 +25,18 @@ export const login = async (req, res) => {
 
   res.json({ user, token: generateToken(user._id) });
 };
+
+// Get leaderboard - top users by points
+export const getLeaderboard = async (req, res) => {
+  try {
+    const users = await User.find()
+      .select("fullName email points avatar")
+      .sort({ points: -1 })
+      .limit(50);
+
+    res.json(users);
+  } catch (error) {
+    console.error("Error fetching leaderboard:", error);
+    res.status(500).json({ message: "Error fetching leaderboard", error });
+  }
+};

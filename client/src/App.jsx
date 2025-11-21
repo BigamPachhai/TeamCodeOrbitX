@@ -10,8 +10,6 @@ export default function App() {
       <main className="grow">
         <AppRouter />
       </main>
-
-      <Footer />
     </div>
   );
 }

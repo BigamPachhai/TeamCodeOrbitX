@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import api from "../api/axios";
 
 export default function Leaderboard() {
-  const { data: users } = useQuery({
+  const { data: users, isLoading } = useQuery({
     queryKey: ["leaderboard"],
     queryFn: async () => {
       const { data } = await api.get("/users/leaderboard");
@@ -10,22 +10,109 @@ export default function Leaderboard() {
     },
   });
 
-  return (
-    <div className="max-w-2xl mx-auto mt-10 bg-white p-8 rounded-lg shadow-lg">
-      <h1 className="text-3xl font-bold text-red-700 mb-6 text-center">
-        Top Contributors
-      </h1>
+  if (isLoading) {
+    return <p className="text-center mt-10">Loading leaderboard...</p>;
+  }
 
-      <div className="space-y-3">
-        {users?.map((u, index) => (
-          <div
-            key={u._id}
-            className="flex justify-between p-4 bg-gray-100 rounded-lg shadow-sm hover:bg-gray-200"
-          >
-            <span className="font-semibold">{index + 1}. {u.fullName}</span>
-            <span className="text-red-700 font-bold">{u.points} pts</span>
-          </div>
-        ))}
+  const getMedalEmoji = (index) => {
+    if (index === 0) return "🥇";
+    if (index === 1) return "🥈";
+    if (index === 2) return "🥉";
+    return "🏅";
+  };
+
+  const getPositionColor = (index) => {
+    if (index === 0)
+      return "bg-gradient-to-r from-yellow-400 to-yellow-600 text-white";
+    if (index === 1)
+      return "bg-gradient-to-r from-gray-300 to-gray-500 text-white";
+    if (index === 2)
+      return "bg-gradient-to-r from-orange-400 to-orange-600 text-white";
+    return "bg-gray-100";
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto mt-10 mb-10 bg-white p-8 rounded-lg shadow-lg">
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold text-red-700 mb-2">
+          🏆 Top Contributors
+        </h1>
+        <p className="text-gray-600">
+          Users ranked by their contribution points
+        </p>
+      </div>
+
+      {!users || users.length === 0 ? (
+        <div className="text-center py-10 bg-gray-50 rounded-lg">
+          <p className="text-gray-500 text-lg">No contributors yet</p>
+          <p className="text-gray-400 text-sm mt-1">
+            Be the first to report issues!
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {users.map((u, index) => (
+            <div
+              key={u._id}
+              className={`flex items-center justify-between p-4 rounded-lg shadow-md hover:shadow-lg transition transform hover:scale-102 ${getPositionColor(
+                index
+              )}`}
+            >
+              <div className="flex items-center gap-4">
+                <span className="text-3xl">{getMedalEmoji(index)}</span>
+                <div>
+                  <span className="font-bold text-lg">
+                    #{index + 1} {u.fullName}
+                  </span>
+                  <p
+                    className={`text-sm ${
+                      index < 3 ? "text-white opacity-80" : "text-gray-500"
+                    }`}
+                  >
+                    {u.email}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <span
+                  className={`font-bold text-2xl ${
+                    index < 3 ? "text-white" : "text-red-700"
+                  }`}
+                >
+                  {u.points}
+                </span>
+                <p
+                  className={`text-xs ${
+                    index < 3 ? "text-white opacity-80" : "text-gray-500"
+                  }`}
+                >
+                  points
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Info Box */}
+      <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
+        <h3 className="font-semibold text-blue-800 mb-2">
+          How to earn points:
+        </h3>
+        <ul className="text-sm text-blue-700 space-y-1">
+          <li>
+            • Report a new issue: <strong>+10 points</strong>
+          </li>
+          <li>
+            • Your issue gets upvoted: <strong>+1 point</strong>
+          </li>
+          <li>
+            • Add helpful comments: <strong>+2 points</strong>
+          </li>
+          <li>
+            • Issue gets resolved: <strong>+5 bonus points</strong>
+          </li>
+        </ul>
       </div>
     </div>
   );

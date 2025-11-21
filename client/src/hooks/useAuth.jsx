@@ -1,6 +1,10 @@
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 
-export default function useAuth() {
+// Named export for easier importing
+export function useAuth() {
   return useContext(AuthContext);
 }
+
+// Default export for backward compatibility
+export default useAuth;
