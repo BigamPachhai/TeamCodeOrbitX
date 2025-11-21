@@ -4,6 +4,7 @@ const issueSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     category: String,
+    ward: String,
     description: String,
     aiDescription: String,
     image: String,
@@ -12,6 +13,7 @@ const issueSchema = new mongoose.Schema(
     lng: Number,
     severity: String,
     status: { type: String, default: "pending" },
+    isAnonymous: { type: Boolean, default: false },
   },
 
   {

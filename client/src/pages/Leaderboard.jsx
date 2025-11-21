@@ -1,7 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import api from "../api/axios";
+import useAuth from "../hooks/useAuth";
+import AchievementShare from "../components/AchievementShare";
 
 export default function Leaderboard() {
+  const { user } = useAuth();
   const { data: users, isLoading } = useQuery({
     queryKey: ["leaderboard"],
     queryFn: async () => {
@@ -9,6 +12,11 @@ export default function Leaderboard() {
       return data;
     },
   });
+
+  // Find current user's rank
+  const currentUserRank = user
+    ? users?.findIndex((u) => u._id === user._id) + 1
+    : null;
 
   if (isLoading) {
     return <p className="text-center mt-10">Loading leaderboard...</p>;
@@ -40,6 +48,17 @@ export default function Leaderboard() {
         <p className="text-gray-600">
           Users ranked by their contribution points
         </p>
+        
+        {/* Show share button if user is logged in and on leaderboard */}
+        {user && currentUserRank && currentUserRank > 0 && (
+          <div className="mt-6 flex justify-center">
+            <AchievementShare 
+              user={user} 
+              rank={currentUserRank} 
+              totalUsers={users?.length || 0}
+            />
+          </div>
+        )}
       </div>
 
       {!users || users.length === 0 ? (
@@ -51,46 +70,56 @@ export default function Leaderboard() {
         </div>
       ) : (
         <div className="space-y-3">
-          {users.map((u, index) => (
-            <div
-              key={u._id}
-              className={`flex items-center justify-between p-4 rounded-lg shadow-md hover:shadow-lg transition transform hover:scale-102 ${getPositionColor(
-                index
-              )}`}
-            >
-              <div className="flex items-center gap-4">
-                <span className="text-3xl">{getMedalEmoji(index)}</span>
-                <div>
-                  <span className="font-bold text-lg">
-                    #{index + 1} {u.fullName}
+          {users.map((u, index) => {
+            const isCurrentUser = user && u._id === user._id;
+            return (
+              <div
+                key={u._id}
+                className={`flex items-center justify-between p-4 rounded-lg shadow-md hover:shadow-lg transition transform hover:scale-102 ${
+                  isCurrentUser
+                    ? "ring-4 ring-blue-500 ring-offset-2"
+                    : ""
+                } ${getPositionColor(index)}`}
+              >
+                <div className="flex items-center gap-4">
+                  <span className="text-3xl">{getMedalEmoji(index)}</span>
+                  <div>
+                    <span className="font-bold text-lg">
+                      #{index + 1} {u.fullName}
+                      {isCurrentUser && (
+                        <span className="ml-2 text-sm bg-blue-500 text-white px-2 py-1 rounded">
+                          You
+                        </span>
+                      )}
+                    </span>
+                    <p
+                      className={`text-sm ${
+                        index < 3 ? "text-white opacity-80" : "text-gray-500"
+                      }`}
+                    >
+                      {u.email}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span
+                    className={`font-bold text-2xl ${
+                      index < 3 ? "text-white" : "text-red-700"
+                    }`}
+                  >
+                    {u.points}
                   </span>
                   <p
-                    className={`text-sm ${
+                    className={`text-xs ${
                       index < 3 ? "text-white opacity-80" : "text-gray-500"
                     }`}
                   >
-                    {u.email}
+                    points
                   </p>
                 </div>
               </div>
-              <div className="text-right">
-                <span
-                  className={`font-bold text-2xl ${
-                    index < 3 ? "text-white" : "text-red-700"
-                  }`}
-                >
-                  {u.points}
-                </span>
-                <p
-                  className={`text-xs ${
-                    index < 3 ? "text-white opacity-80" : "text-gray-500"
-                  }`}
-                >
-                  points
-                </p>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

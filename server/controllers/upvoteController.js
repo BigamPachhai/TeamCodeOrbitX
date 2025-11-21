@@ -1,5 +1,6 @@
 import Upvote from "../models/Upvote.js";
 import Issue from "../models/Issue.js";
+import User from "../models/User.js";
 
 /**
  * Get client IP address
@@ -47,6 +48,20 @@ export const toggleUpvote = async (req, res) => {
       // Remove upvote (unlike)
       await Upvote.deleteOne({ _id: existingUpvote._id });
 
+      // Remove 1 point from the issue owner when someone removes their upvote
+      // Only if the upvote was from an authenticated user
+      if (userId) {
+        const issue = await Issue.findById(issueId);
+        if (issue && issue.user) {
+          // Don't remove points if user unliked their own issue
+          if (issue.user.toString() !== userId.toString()) {
+            await User.findByIdAndUpdate(issue.user, {
+              $inc: { points: -1 },
+            });
+          }
+        }
+      }
+
       // Get updated count
       const upvoteCount = await Upvote.countDocuments({ issue: issueId });
 
@@ -72,6 +87,20 @@ export const toggleUpvote = async (req, res) => {
       }
 
       await Upvote.create(upvoteData);
+
+      // Award 1 point to the issue owner when someone upvotes their issue
+      // Only if the upvote is from an authenticated user
+      if (userId) {
+        const issue = await Issue.findById(issueId);
+        if (issue && issue.user) {
+          // Don't award points if user upvoted their own issue
+          if (issue.user.toString() !== userId.toString()) {
+            await User.findByIdAndUpdate(issue.user, {
+              $inc: { points: 1 },
+            });
+          }
+        }
+      }
 
       // Get updated count
       const upvoteCount = await Upvote.countDocuments({ issue: issueId });

@@ -6,6 +6,7 @@ import {
   createIssue,
   getAllIssues,
   getIssueById,
+  getBeforeAfterPhotos,
 } from "../controllers/issueController.js";
 
 import { generateAIContent } from "../controllers/aiController.js";
@@ -30,6 +31,11 @@ router.post("/create", protect, upload.single("image"), createIssue);
    GET ALL ISSUES (public) - MUST come BEFORE /:id
 ========================================================== */
 router.get("/all", getAllIssues);
+
+/* ==========================================================
+   GET BEFORE/AFTER PHOTOS (must come BEFORE /:id)
+========================================================== */
+router.get("/:id/before-after", getBeforeAfterPhotos);
 
 /* ==========================================================
    GET ISSUE BY ID (must ALWAYS be last among GET routes)

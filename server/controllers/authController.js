@@ -26,6 +26,20 @@ export const login = async (req, res) => {
   res.json({ user, token: generateToken(user._id) });
 };
 
+// Get current user info
+export const getCurrentUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json(user);
+  } catch (error) {
+    console.error("Error fetching current user:", error);
+    res.status(500).json({ message: "Error fetching user", error });
+  }
+};
+
 // Get leaderboard - top users by points
 export const getLeaderboard = async (req, res) => {
   try {

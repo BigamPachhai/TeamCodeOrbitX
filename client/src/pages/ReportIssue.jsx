@@ -1,9 +1,12 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import api from "../api/axios";
 import MapPicker from "../components/MapPicker";
-import { rupandehiLocations, getCategories } from "../data/rupandehiLocations";
+import { categories } from "../data/categories";
+import { getAllWards, getLocationsByWard } from "../data/rupandehiWards";
 
 export default function ReportIssue() {
+  const { t } = useTranslation();
   const [image, setImage] = useState(null);
   const [description, setDescription] = useState("");
   const [locationName, setLocationName] = useState("");
@@ -11,7 +14,9 @@ export default function ReportIssue() {
   const [lng, setLng] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedWard, setSelectedWard] = useState("");
   const [showMap, setShowMap] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(false);
 
   const generateAI = async () => {
     if (!image) return alert("Upload an image first");
@@ -30,13 +35,21 @@ export default function ReportIssue() {
   // Handle category change
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
+    // Reset ward when category changes
+    setSelectedWard("");
+  };
+
+  // Handle ward change
+  const handleWardChange = (e) => {
+    setSelectedWard(e.target.value);
   };
 
   // Handle location selection from dropdown
   const handleLocationSelect = (e) => {
     const locationIndex = e.target.value;
-    if (locationIndex && selectedCategory) {
-      const location = rupandehiLocations[selectedCategory][locationIndex];
+    if (locationIndex && selectedWard) {
+      const locations = getLocationsByWard(selectedWard);
+      const location = locations[locationIndex];
       setLocationName(location.name);
       setLat(location.lat);
       setLng(location.lng);
@@ -49,12 +62,25 @@ export default function ReportIssue() {
     const fd = new FormData();
     fd.append("image", image);
     fd.append("description", description);
+    fd.append("category", selectedCategory || "");
+    fd.append("ward", selectedWard || "");
     fd.append("locationName", locationName);
     fd.append("lat", lat);
     fd.append("lng", lng);
+    fd.append("isAnonymous", isAnonymous);
 
     await api.post("/issues/create", fd);
-    alert("Issue submitted!");
+    alert(isAnonymous ? t("reportIssue.issueSubmittedAnonymously") : t("reportIssue.issueSubmitted"));
+    
+    // Reset form
+    setImage(null);
+    setDescription("");
+    setSelectedCategory("");
+    setSelectedWard("");
+    setLocationName("");
+    setLat("");
+    setLng("");
+    setIsAnonymous(false);
   };
 
   // Get current location (accessible from anywhere)
@@ -106,13 +132,13 @@ export default function ReportIssue() {
 
   return (
     <div className="max-w-4xl mx-auto mt-10 mb-10 bg-white p-8 rounded-lg shadow-lg">
-      <h1 className="text-3xl font-bold text-red-700 mb-6">Report an Issue</h1>
+      <h1 className="text-3xl font-bold text-red-700 mb-6">{t("reportIssue.title")}</h1>
 
       <form className="space-y-5" onSubmit={handleSubmit}>
         {/* Image Upload */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Upload Image *
+            {t("reportIssue.uploadImage")}
           </label>
           <input
             type="file"
@@ -125,10 +151,10 @@ export default function ReportIssue() {
         {/* Description */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Description
+            {t("reportIssue.description")}
           </label>
           <textarea
-            placeholder="Describe the issue..."
+            placeholder={t("reportIssue.description")}
             className="w-full border-2 border-gray-300 p-3 rounded-lg focus:border-red-500 focus:outline-none"
             rows="3"
             onChange={(e) => setDescription(e.target.value)}
@@ -165,16 +191,16 @@ export default function ReportIssue() {
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 ></path>
               </svg>
-              Generating...
+              {t("common.loading")}
             </>
           ) : (
-            <>🤖 Generate Description with AI</>
+            <>{t("reportIssue.generateAI")}</>
           )}
         </button>
 
         <div className="border-t-2 border-gray-200 pt-5">
           <h2 className="text-xl font-bold text-gray-800 mb-4">
-            📍 Select Location
+            📍 {t("reportIssue.selectLocation")}
           </h2>
 
           {/* Quick Current Location Button */}
@@ -206,10 +232,10 @@ export default function ReportIssue() {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   ></path>
                 </svg>
-                Getting Your Location...
+                {t("common.loading")}
               </>
             ) : (
-              <>📍 Use My Current Location (GPS)</>
+              <>{t("reportIssue.useCurrentLocation")}</>
             )}
           </button>
 
@@ -233,7 +259,7 @@ export default function ReportIssue() {
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
             >
-              🏢 Choose from List
+              {t("reportIssue.chooseFromList")}
             </button>
             <button
               type="button"
@@ -244,24 +270,25 @@ export default function ReportIssue() {
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
             >
-              🗺️ Use Map
+              {t("reportIssue.useMap")}
             </button>
           </div>
 
           {!showMap ? (
-            /* Category and Location Dropdown */
+            /* Category, Ward and Location Dropdown */
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Select Category
+                  {t("reportIssue.selectCategory")}
                 </label>
                 <select
                   className="w-full border-2 border-gray-300 p-3 rounded-lg focus:border-red-500 focus:outline-none"
                   value={selectedCategory}
                   onChange={handleCategoryChange}
+                  required
                 >
-                  <option value="">-- Choose a Category --</option>
-                  {getCategories().map((category) => (
+                  <option value="">-- {t("reportIssue.selectCategory")} --</option>
+                  {categories.map((category) => (
                     <option key={category} value={category}>
                       {category}
                     </option>
@@ -270,24 +297,48 @@ export default function ReportIssue() {
               </div>
 
               {selectedCategory && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Select Location
-                  </label>
-                  <select
-                    className="w-full border-2 border-gray-300 p-3 rounded-lg focus:border-red-500 focus:outline-none"
-                    onChange={handleLocationSelect}
-                  >
-                    <option value="">-- Choose a Location --</option>
-                    {rupandehiLocations[selectedCategory].map(
-                      (location, index) => (
-                        <option key={index} value={index}>
-                          {location.name}
+                <>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      {t("reportIssue.selectWard")}
+                    </label>
+                    <select
+                      className="w-full border-2 border-gray-300 p-3 rounded-lg focus:border-red-500 focus:outline-none"
+                      value={selectedWard}
+                      onChange={handleWardChange}
+                      required
+                    >
+                      <option value="">-- {t("reportIssue.selectWard")} --</option>
+                      {getAllWards().map((ward) => (
+                        <option key={ward} value={ward}>
+                          {ward}
                         </option>
-                      )
-                    )}
-                  </select>
-                </div>
+                      ))}
+                    </select>
+                  </div>
+
+                  {selectedWard && (
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        {t("reportIssue.selectLocation")}
+                      </label>
+                      <select
+                        className="w-full border-2 border-gray-300 p-3 rounded-lg focus:border-red-500 focus:outline-none"
+                        onChange={handleLocationSelect}
+                        required
+                      >
+                        <option value="">-- {t("reportIssue.selectLocation")} --</option>
+                        {getLocationsByWard(selectedWard).map(
+                          (location, index) => (
+                            <option key={index} value={index}>
+                              {location.name}
+                            </option>
+                          )
+                        )}
+                      </select>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           ) : (
@@ -305,16 +356,16 @@ export default function ReportIssue() {
         {/* Location Details Display */}
         <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
           <h3 className="font-semibold text-gray-700 mb-3">
-            Selected Location Details
+            {t("reportIssue.selectedLocation")}
           </h3>
 
           <div className="space-y-2">
             <div>
               <label className="block text-sm font-semibold text-gray-600 mb-1">
-                Location Name
+                {t("reportIssue.locationName")}
               </label>
               <input
-                placeholder="Location name will appear here"
+                placeholder={t("reportIssue.locationName")}
                 className="w-full border-2 border-gray-300 p-3 rounded-lg focus:border-red-500 focus:outline-none bg-white"
                 value={locationName}
                 onChange={(e) => setLocationName(e.target.value)}
@@ -325,10 +376,10 @@ export default function ReportIssue() {
             <div className="flex gap-3">
               <div className="flex-1">
                 <label className="block text-sm font-semibold text-gray-600 mb-1">
-                  Latitude
+                  {t("reportIssue.latitude")}
                 </label>
                 <input
-                  placeholder="Latitude"
+                  placeholder={t("reportIssue.latitude")}
                   className="w-full border-2 border-gray-300 p-3 rounded-lg bg-white focus:border-red-500 focus:outline-none"
                   value={lat}
                   onChange={(e) => setLat(e.target.value)}
@@ -338,10 +389,10 @@ export default function ReportIssue() {
 
               <div className="flex-1">
                 <label className="block text-sm font-semibold text-gray-600 mb-1">
-                  Longitude
+                  {t("reportIssue.longitude")}
                 </label>
                 <input
-                  placeholder="Longitude"
+                  placeholder={t("reportIssue.longitude")}
                   className="w-full border-2 border-gray-300 p-3 rounded-lg bg-white focus:border-red-500 focus:outline-none"
                   value={lng}
                   onChange={(e) => setLng(e.target.value)}
@@ -352,12 +403,32 @@ export default function ReportIssue() {
           </div>
         </div>
 
+        {/* Anonymous Posting Option */}
+        <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={isAnonymous}
+              onChange={(e) => setIsAnonymous(e.target.checked)}
+              className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+            />
+            <div>
+              <span className="font-semibold text-blue-800">
+                {t("reportIssue.postAnonymously")}
+              </span>
+              <p className="text-sm text-blue-600 mt-1">
+                {t("reportIssue.anonymousNote")}
+              </p>
+            </div>
+          </label>
+        </div>
+
         {/* Submit Button */}
         <button
           type="submit"
           className="w-full bg-red-700 text-white py-4 rounded-lg hover:bg-red-800 transition font-bold text-lg shadow-lg"
         >
-          📤 Submit Issue
+          {isAnonymous ? t("reportIssue.submitIssueAnonymously") : t("reportIssue.submitIssue")}
         </button>
       </form>
     </div>

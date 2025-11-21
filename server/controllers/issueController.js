@@ -1,4 +1,6 @@
 import Issue from "../models/Issue.js";
+import BeforeAfter from "../models/BeforeAfter.js";
+import User from "../models/User.js";
 import cloudinary from "../config/cloudinary.js";
 import {
   analyzeImageCategory,
@@ -55,10 +57,17 @@ export const createIssue = async (req, res) => {
       user: req.user._id,
       description,
       category,
+      ward: req.body.ward || "",
       locationName,
       lat,
       lng,
       image: uploadedImage,
+      isAnonymous: req.body.isAnonymous === "true" || req.body.isAnonymous === true,
+    });
+
+    // Award 10 points for reporting a new issue
+    await User.findByIdAndUpdate(req.user._id, {
+      $inc: { points: 10 },
     });
 
     return res.json({
@@ -80,7 +89,22 @@ export const getAllIssues = async (req, res) => {
       .populate("user", "fullName email")
       .populate("upvoteCount")
       .sort({ createdAt: -1 });
-    res.json(issues);
+    
+    // Hide user info for anonymous posts (but keep it in the data structure)
+    const processedIssues = issues.map((issue) => {
+      const issueObj = issue.toObject();
+      if (issueObj.isAnonymous) {
+        // Keep user data but mark as anonymous for frontend
+        issueObj.user = {
+          _id: issueObj.user?._id,
+          fullName: "Anonymous",
+          email: "anonymous@example.com",
+        };
+      }
+      return issueObj;
+    });
+    
+    res.json(processedIssues);
   } catch (error) {
     console.error("Error fetching issues:", error);
     res.status(500).json({ message: "Error getting issues", error });
@@ -109,9 +133,38 @@ export const getIssueById = async (req, res) => {
     if (!issue) {
       return res.status(404).json({ message: "Issue not found" });
     }
-    res.json(issue);
+    
+    // Hide user info for anonymous posts
+    const issueObj = issue.toObject();
+    if (issueObj.isAnonymous) {
+      issueObj.user = {
+        _id: issueObj.user?._id,
+        fullName: "Anonymous",
+        email: "anonymous@example.com",
+      };
+    }
+    
+    res.json(issueObj);
   } catch (error) {
     console.error("Error fetching issue:", error);
     res.status(500).json({ message: "Error fetching issue", error });
+  }
+};
+
+/* ============================================================
+   GET BEFORE/AFTER PHOTOS FOR AN ISSUE (PUBLIC)
+============================================================ */
+export const getBeforeAfterPhotos = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const beforeAfter = await BeforeAfter.find({ issue: id })
+      .populate("issue", "category locationName status")
+      .sort({ createdAt: -1 });
+    
+    res.json(beforeAfter);
+  } catch (error) {
+    console.error("Error fetching before/after photos:", error);
+    res.status(500).json({ message: "Error fetching photos", error });
   }
 };

@@ -15,6 +15,8 @@ import ContactGov from "../pages/ContactGov";
 import Statistics from "../pages/Statistics";
 import AdminDashboard from "../pages/AdminDashboard";
 import AdminIssueDetails from "../pages/AdminIssueDetails";
+import AdvancedReporting from "../pages/AdvancedReporting";
+import MakeDifference from "../pages/MakeDifference";
 
 import ProtectedRoute from "../components/ProtectedRoute";
 
@@ -27,6 +29,8 @@ export default function AppRouter() {
       <Route path="/faq" element={<FAQ />} />
       <Route path="/contact" element={<ContactGov />} />
       <Route path="/stats" element={<Statistics />} />
+      <Route path="/advanced-reporting" element={<AdvancedReporting />} />
+      <Route path="/make-difference" element={<MakeDifference />} />
 
       {/* Auth */}
       <Route path="/login" element={<Login />} />

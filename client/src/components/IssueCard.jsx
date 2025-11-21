@@ -60,9 +60,16 @@ export default function IssueCard({ issue }) {
         <p className="text-gray-700 line-clamp-2">{issue.description}</p>
 
         <div className="flex items-center justify-between mt-3">
-          <p className="text-sm text-blue-800">
-            Status: <b>{issue.status}</b>
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-blue-800">
+              Status: <b className="capitalize">{issue.status}</b>
+            </p>
+            {issue.status === "resolved" && (
+              <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">
+                ✅ Resolved
+              </span>
+            )}
+          </div>
           <p className="text-xs text-gray-500">{issue.locationName}</p>
         </div>
       </Link>
