@@ -1,0 +1,42 @@
+
+@import "tailwindcss";
+@import "tailwindcss";
+
+body {
+  margin: 0;
+  width: 100%;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: #fafafa;
+  font-family: "Inter", sans-serif;
+  overflow-x: hidden;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Prevent half-screen issues (IMPORTANT) */
+#root {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Remove Vite default styles */
+a, button, :root {
+  all: unset;
+  display: revert;
+}
+
+/* Bring back proper styling for links */
+a {
+  cursor: pointer;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Make sure Tailwind buttons look correct */
+button {
+  cursor: pointer;
+}

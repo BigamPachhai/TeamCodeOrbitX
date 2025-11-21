@@ -32,3 +32,21 @@ export const createIssue = async (req, res) => {
 
   res.json(issue);
 };
+export const getAllIssues = async (req, res) => {
+  try {
+    const issues = await Issue.find().sort({ createdAt: -1 });
+    res.json(issues);
+  } catch (error) {
+    res.status(500).json({ message: "Error getting issues", error });
+  }
+};
+
+export const getIssueById = async (req, res) => {
+  try {
+    const issue = await Issue.findById(req.params.id).populate("user");
+    if (!issue) return res.status(404).json({ message: "Issue not found" });
+    res.json(issue);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching issue", error });
+  }
+};
