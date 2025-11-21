@@ -31,8 +31,8 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-gradient-to-b from-blue-900 to-blue-950 text-white mt-16">
-      <div className="max-w-6xl mx-auto px-4 py-12">
+    <footer className="bg-[#003865] text-white border-t-4 border-[#DC143C] mt-16">
+      <div className="max-w-6xl mx-auto px-4 py-10">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           {/* About Section */}
@@ -150,13 +150,18 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-blue-800 pt-6">
+        <div className="border-t border-white/20 pt-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-blue-200 text-sm text-center md:text-left">
-              {t("footer.copyright", { year: new Date().getFullYear() })}
+            <p className="text-white/80 text-xs text-center md:text-left">
+              © {new Date().getFullYear()} {t("footer.copyright", { year: new Date().getFullYear() })}
             </p>
-            <p className="text-blue-200 text-sm text-center md:text-right">
-              {t("footer.government")} • {t("footer.district")}
+            <p className="text-white/80 text-xs text-center md:text-right">
+              {t("footer.government")} • {t("footer.district")} • All Rights Reserved
+            </p>
+          </div>
+          <div className="mt-4 pt-4 border-t border-white/10 text-center">
+            <p className="text-white/70 text-xs">
+              नेपाल सरकार | Government of Nepal | रुपन्देही जिल्ला | Rupandehi District
             </p>
           </div>
         </div>

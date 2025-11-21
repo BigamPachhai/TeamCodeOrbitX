@@ -7,6 +7,9 @@ import {
   generateDescriptionAI,
   detectDuplicateIssue,
 } from "../utils/aiUtils.js";
+import { generateIssueQRCode } from "../utils/qrGenerator.js";
+import { generateIssuePDF } from "../utils/pdfGenerator.js";
+import { getTemplate, getAllTemplates } from "../utils/issueTemplates.js";
 
 /* ============================================================
    CREATE ISSUE (with AI + Cloudinary)
@@ -60,20 +63,12 @@ export const createIssue = async (req, res) => {
       }
     }
 
-    // AI Description - Only use if description is too short or empty
-    // Don't auto-generate unless user hasn't provided enough info
+    // Description validation - user must provide description (either written themselves or AI-generated)
+    // NO automatic AI generation - users must explicitly click the "AI Analysis" button
     if (!description || description.trim().length < 10) {
-      // Only auto-generate if description is very short
-      if (uploadedImage) {
-        try {
-          description = await generateDescriptionAI(uploadedImage);
-        } catch (error) {
-          console.error("Error auto-generating description:", error);
-          description = description || "Issue reported. Please see image for details.";
-        }
-      } else {
-        description = description || "Issue reported. Please provide more details.";
-      }
+      return res.status(400).json({
+        message: "Description is required. Please write a description or use AI Analysis to generate one.",
+      });
     }
 
     // Save Issue
@@ -190,5 +185,102 @@ export const getBeforeAfterPhotos = async (req, res) => {
   } catch (error) {
     console.error("Error fetching before/after photos:", error);
     res.status(500).json({ message: "Error fetching photos", error });
+  }
+};
+
+/* ============================================================
+   GET QR CODE FOR ISSUE SHARING
+============================================================ */
+export const getIssueQRCode = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const issue = await Issue.findById(id);
+
+    if (!issue) {
+      return res.status(404).json({ message: "Issue not found" });
+    }
+
+    const baseUrl = process.env.FRONTEND_URL || req.protocol + "://" + req.get("host");
+    const qrData = await generateIssueQRCode(id, baseUrl);
+
+    res.json({
+      success: true,
+      ...qrData,
+    });
+  } catch (error) {
+    console.error("Error generating QR code:", error);
+    res.status(500).json({ message: "Error generating QR code", error: error.message });
+  }
+};
+
+/* ============================================================
+   EXPORT ISSUE AS PDF (Public)
+============================================================ */
+export const exportIssuePDF = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const issue = await Issue.findById(id).populate("user", "fullName");
+
+    if (!issue) {
+      return res.status(404).json({ message: "Issue not found" });
+    }
+
+    const baseUrl = process.env.FRONTEND_URL || req.protocol + "://" + req.get("host");
+    const pdfPath = await generateIssuePDF(issue, baseUrl);
+
+    res.download(pdfPath, `issue_${id}.pdf`, (err) => {
+      if (err) {
+        console.error("Error downloading PDF:", err);
+      }
+      // Clean up file after download
+      setTimeout(() => {
+        try {
+          const fs = require("fs");
+          if (fs.existsSync(pdfPath)) {
+            fs.unlinkSync(pdfPath);
+          }
+        } catch (cleanupError) {
+          console.error("Error cleaning up PDF:", cleanupError);
+        }
+      }, 5000);
+    });
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    res.status(500).json({ message: "Error generating PDF", error: error.message });
+  }
+};
+
+/* ============================================================
+   GET ISSUE TEMPLATE
+============================================================ */
+export const getIssueTemplate = async (req, res) => {
+  try {
+    const { category } = req.params;
+    const template = getTemplate(category || "Other");
+
+    res.json({
+      success: true,
+      template,
+    });
+  } catch (error) {
+    console.error("Error getting template:", error);
+    res.status(500).json({ message: "Error getting template", error: error.message });
+  }
+};
+
+/* ============================================================
+   GET ALL ISSUE TEMPLATES
+============================================================ */
+export const getAllIssueTemplates = async (req, res) => {
+  try {
+    const templates = getAllTemplates();
+
+    res.json({
+      success: true,
+      templates,
+    });
+  } catch (error) {
+    console.error("Error getting templates:", error);
+    res.status(500).json({ message: "Error getting templates", error: error.message });
   }
 };

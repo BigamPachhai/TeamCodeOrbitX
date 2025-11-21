@@ -38,80 +38,67 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 flex items-center justify-center px-4 relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute top-0 left-0 w-40 h-40 bg-blue-600 opacity-20 rounded-full -translate-x-16 -translate-y-16 blur-3xl animate-pulse"></div>
-      <div className="absolute bottom-0 right-0 w-48 h-48 bg-purple-500 opacity-20 rounded-full translate-x-20 translate-y-20 blur-3xl animate-pulse"></div>
-      <div className="absolute top-1/2 left-1/2 w-56 h-56 bg-pink-500 opacity-15 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl animate-pulse"></div>
-
-      {/* Mandala pattern overlay */}
-      <div
-        className="absolute inset-0 opacity-5 bg-repeat bg-center"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 10 L60 40 L90 50 L60 60 L50 90 L40 60 L10 50 L40 40 Z' fill='%23dc2626'/%3E%3C/svg%3E")`,
-          backgroundSize: "200px",
-        }}
-      ></div>
-
-      <div className="bg-white/90 backdrop-blur-xl p-10 rounded-3xl shadow-2xl w-full max-w-md relative z-10 border-3 border-purple-200">
-        {/* Modern header icon */}
-        <div className="flex justify-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-3xl flex items-center justify-center shadow-2xl transform hover:scale-110 transition-transform">
-            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
-                <span className="text-white text-2xl font-bold">🔐</span>
-              </div>
-            </div>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
+      <div className="bg-white border border-gray-200 shadow-sm p-8 w-full max-w-md">
+        {/* Official Government Header */}
+        <div className="flex justify-center mb-6">
+          <div className="w-16 h-16 bg-[#003865] rounded flex items-center justify-center">
+            <LogIn className="w-8 h-8 text-white" />
           </div>
         </div>
 
-        <h1 className="text-4xl font-bold text-center bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-3 font-sans">
-          🙏 लगइन गर्नुहोस्
-        </h1>
-        <p className="text-center text-gray-700 mb-8 text-lg font-medium">
-          (Login to Sanket)
-        </p>
+        <div className="text-center mb-6 border-b border-gray-200 pb-4">
+          <h1 className="text-2xl font-bold text-[#003865] mb-1">
+            लगइन गर्नुहोस्
+          </h1>
+          <p className="text-sm text-gray-600">
+            रुपन्देही जिल्ला | Rupandehi District Administration Office
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            Login to Sanket
+          </p>
+        </div>
 
-        <form className="space-y-6" onSubmit={handleSubmit}>
-          <div className="relative group">
+        <form className="space-y-5" onSubmit={handleSubmit}>
+          <div className="relative">
             <input
               type="email"
-              placeholder="📧 इमेल ठेगाना"
+              placeholder="इमेल ठेगाना"
               value={email}
-              className="w-full px-5 py-4 border-3 border-purple-200 rounded-xl focus:ring-4 focus:ring-purple-300 focus:border-purple-500 transition-all duration-300 bg-white/50 backdrop-blur-sm pl-14 text-lg font-medium group-hover:border-purple-300 shadow-lg"
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded focus:ring-2 focus:ring-[#003865] focus:border-[#003865] transition-all bg-white pl-12 text-sm"
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={isLoading}
             />
-            <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-purple-500 group-hover:text-purple-600 transition-colors">
-              <Mail className="w-6 h-6" />
+            <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+              <Mail className="w-5 h-5" />
             </div>
           </div>
 
-          <div className="relative group">
+          <div className="relative">
             <input
               type="password"
-              placeholder="🔒 पासवर्ड"
+              placeholder="पासवर्ड"
               value={password}
-              className="w-full px-5 py-4 border-3 border-purple-200 rounded-xl focus:ring-4 focus:ring-purple-300 focus:border-purple-500 transition-all duration-300 bg-white/50 backdrop-blur-sm pl-14 text-lg font-medium group-hover:border-purple-300 shadow-lg"
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded focus:ring-2 focus:ring-[#003865] focus:border-[#003865] transition-all bg-white pl-12 text-sm"
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={isLoading}
             />
-            <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-purple-500 group-hover:text-purple-600 transition-colors">
-              <Lock className="w-6 h-6" />
+            <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+              <Lock className="w-5 h-5" />
             </div>
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white py-4 rounded-xl hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 transition-all duration-300 font-bold text-xl shadow-2xl hover:shadow-3xl transform hover:-translate-y-1 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-3 border-2 border-purple-400"
+            className="w-full bg-[#003865] text-white py-3 rounded border border-[#003865] hover:bg-[#002D4F] transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
           >
             {isLoading ? (
               <>
                 <svg
-                  className="animate-spin h-6 w-6 text-white"
+                  className="animate-spin h-5 w-5 text-white"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -130,7 +117,7 @@ export default function Login() {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   ></path>
                 </svg>
-                ✨ लगइन हुँदैछ...
+                लगइन हुँदैछ...
               </>
             ) : (
               <>
@@ -141,26 +128,16 @@ export default function Login() {
           </button>
         </form>
 
-        <div className="mt-6 pt-6 border-t border-orange-200">
-          <p className="text-center text-gray-600">
+        <div className="mt-6 pt-5 border-t border-gray-200">
+          <p className="text-center text-sm text-gray-600">
             खाता छैन?{" "}
             <Link
               to="/register"
-              className="text-blue-700 font-semibold hover:text-blue-800 underline transition-colors duration-300"
+              className="text-[#003865] font-semibold hover:text-[#002D4F] underline transition-colors"
             >
               दर्ता गर्नुहोस्
             </Link>
           </p>
-        </div>
-
-        {/* Cultural pattern footer */}
-        <div className="mt-6 flex justify-center space-x-2">
-          {[...Array(6)].map((_, i) => (
-            <div
-              key={i}
-              className="w-2 h-2 bg-red-500 rounded-full opacity-60"
-            ></div>
-          ))}
         </div>
       </div>
     </div>

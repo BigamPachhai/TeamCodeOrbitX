@@ -24,11 +24,11 @@ export default function Statistics() {
   });
 
   if (isLoading) return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
-      <div className="text-center bg-white/80 backdrop-blur-sm p-12 rounded-3xl shadow-2xl border-2 border-purple-200">
-        <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-200 border-t-purple-600 mx-auto"></div>
-        <p className="mt-6 text-gray-700 text-xl font-semibold">
-          ✨ Loading statistics...
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center bg-white border border-gray-200 p-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-[#003865] mx-auto"></div>
+        <p className="mt-6 text-gray-700 text-base font-semibold">
+          Loading statistics...
         </p>
       </div>
     </div>
@@ -69,66 +69,65 @@ export default function Statistics() {
   const resolutionRate = totalIssues > 0 ? ((resolvedIssues / totalIssues) * 100).toFixed(1) : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12">
+    <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center mb-6 flex-wrap gap-4">
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-3xl flex items-center justify-center shadow-2xl transform hover:scale-110 transition-transform">
-              <BarChart3 className="w-10 h-10 text-white" />
+        {/* Official Government Header */}
+        <div className="bg-white border-l-4 border-[#003865] shadow-md mb-8 p-6">
+          <div className="flex items-start gap-4">
+            <div className="w-16 h-16 bg-[#003865] rounded flex items-center justify-center flex-shrink-0">
+              <BarChart3 className="w-8 h-8 text-white" />
             </div>
-            <div className="text-center md:text-left">
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent whitespace-nowrap">
-                📊 Statistics Dashboard
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold text-[#003865] mb-1">
+                Statistics Dashboard
               </h1>
-              <p className="text-gray-700 mt-2 text-xl font-semibold whitespace-nowrap">
+              <p className="text-gray-600 text-sm">
+                रुपन्देही जिल्ला | Rupandehi District Administration Office
+              </p>
+              <p className="text-gray-500 text-xs mt-1">
                 Public Grievance Analytics
               </p>
             </div>
           </div>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto mt-4">
-            Comprehensive overview of citizen issues and resolution metrics for transparent governance
-          </p>
-          <div className="w-40 h-1.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 mx-auto mt-6 rounded-full shadow-lg"></div>
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border-2 border-red-200 p-8 text-center transform hover:scale-105 transition-all duration-300 hover:shadow-2xl">
-            <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <AlertCircle className="w-8 h-8 text-white" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+          <div className="bg-white border border-gray-200 shadow-sm p-6 text-center">
+            <div className="w-12 h-12 bg-red-600 rounded flex items-center justify-center mx-auto mb-3">
+              <AlertCircle className="w-6 h-6 text-white" />
             </div>
-            <div className="text-5xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent mb-3">{totalIssues}</div>
-            <div className="text-gray-700 font-bold text-lg mb-1">Total Issues Reported</div>
-            <div className="text-sm text-gray-600 font-medium">All citizen grievances</div>
+            <div className="text-4xl font-bold text-[#003865] mb-2">{totalIssues}</div>
+            <div className="text-gray-700 font-semibold text-sm mb-1">Total Issues Reported</div>
+            <div className="text-xs text-gray-600">All citizen grievances</div>
           </div>
           
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border-2 border-green-200 p-8 text-center transform hover:scale-105 transition-all duration-300 hover:shadow-2xl">
-            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <CheckCircle className="w-8 h-8 text-white" />
+          <div className="bg-white border border-gray-200 shadow-sm p-6 text-center">
+            <div className="w-12 h-12 bg-green-600 rounded flex items-center justify-center mx-auto mb-3">
+              <CheckCircle className="w-6 h-6 text-white" />
             </div>
-            <div className="text-5xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-3">{resolvedIssues}</div>
-            <div className="text-gray-700 font-bold text-lg mb-1">Issues Resolved</div>
-            <div className="text-sm text-gray-600 font-medium">Successfully addressed</div>
+            <div className="text-4xl font-bold text-[#003865] mb-2">{resolvedIssues}</div>
+            <div className="text-gray-700 font-semibold text-sm mb-1">Issues Resolved</div>
+            <div className="text-xs text-gray-600">Successfully addressed</div>
           </div>
           
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border-2 border-blue-200 p-8 text-center transform hover:scale-105 transition-all duration-300 hover:shadow-2xl">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <TrendingUp className="w-8 h-8 text-white" />
+          <div className="bg-white border border-gray-200 shadow-sm p-6 text-center">
+            <div className="w-12 h-12 bg-[#003865] rounded flex items-center justify-center mx-auto mb-3">
+              <TrendingUp className="w-6 h-6 text-white" />
             </div>
-            <div className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-3">{resolutionRate}%</div>
-            <div className="text-gray-700 font-bold text-lg mb-1">Resolution Rate</div>
-            <div className="text-sm text-gray-600 font-medium">Overall efficiency</div>
+            <div className="text-4xl font-bold text-[#003865] mb-2">{resolutionRate}%</div>
+            <div className="text-gray-700 font-semibold text-sm mb-1">Resolution Rate</div>
+            <div className="text-xs text-gray-600">Overall efficiency</div>
           </div>
         </div>
 
         {/* Charts Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
           {/* Status Distribution */}
-          <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border-2 border-purple-200 p-8">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-6 pb-4 border-b-2 border-purple-200 flex items-center gap-3">
-              <Target className="w-6 h-6 text-purple-600" />
+          <div className="bg-white border border-gray-200 shadow-sm p-6">
+            <h2 className="text-lg font-bold text-[#003865] mb-4 pb-3 border-b border-gray-200 flex items-center gap-2 uppercase tracking-wide text-sm">
+              <Target className="w-4 h-4" />
               Issue Status Distribution
             </h2>
             <div className="h-80">
@@ -164,9 +163,9 @@ export default function Statistics() {
           </div>
 
           {/* Category Distribution */}
-          <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border-2 border-blue-200 p-8">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-6 pb-4 border-b-2 border-blue-200 flex items-center gap-3">
-              <BarChart3 className="w-6 h-6 text-blue-600" />
+          <div className="bg-white border border-gray-200 shadow-sm p-6">
+            <h2 className="text-lg font-bold text-[#003865] mb-4 pb-3 border-b border-gray-200 flex items-center gap-2 uppercase tracking-wide text-sm">
+              <BarChart3 className="w-4 h-4" />
               Issues by Category
             </h2>
             <div className="h-80">
@@ -201,9 +200,9 @@ export default function Statistics() {
           </div>
 
           {/* Priority Distribution */}
-          <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border-2 border-green-200 p-8 lg:col-span-2">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-6 pb-4 border-b-2 border-green-200 flex items-center gap-3">
-              <Clock className="w-6 h-6 text-green-600" />
+          <div className="bg-white border border-gray-200 shadow-sm p-6 lg:col-span-2">
+            <h2 className="text-lg font-bold text-[#003865] mb-4 pb-3 border-b border-gray-200 flex items-center gap-2 uppercase tracking-wide text-sm">
+              <Clock className="w-4 h-4" />
               Issues by Priority Level
             </h2>
             <div className="h-80">
@@ -235,9 +234,12 @@ export default function Statistics() {
         </div>
 
         {/* Footer Note */}
-        <div className="mt-10 text-center bg-white/60 backdrop-blur-sm rounded-2xl shadow-xl border-2 border-purple-200 p-6">
-          <p className="text-sm text-gray-700 font-semibold">
-            ⚡ Data updated in real-time • 🏛️ Government of Nepal Public Grievance Management System
+        <div className="mt-8 text-center bg-white border border-gray-200 p-5">
+          <p className="text-xs text-gray-600 font-medium">
+            Data updated in real-time • Government of Nepal Public Grievance Management System
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            नेपाल सरकार | Government of Nepal
           </p>
         </div>
       </div>

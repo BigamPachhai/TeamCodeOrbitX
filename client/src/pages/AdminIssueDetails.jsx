@@ -94,180 +94,275 @@ export default function AdminIssueDetails() {
     }
   };
 
-  if (!issue) return <p className="text-center mt-10">Loading...</p>;
-
-  return (
-    <div className="max-w-5xl mx-auto mt-10 mb-10 bg-white p-8 rounded-lg shadow-lg">
-      {/* Header Section */}
-      <div className="mb-6">
-        <h1 className="text-4xl font-bold text-blue-800 mb-2">
-          {issue.category}
-        </h1>
-        <div className="flex items-center gap-2">
-          <span
-            className={`px-3 py-1 rounded-full text-sm font-semibold border-2 ${getStatusColor(
-              issue.status
-            )}`}
-          >
-            {issue.status}
-          </span>
+  if (!issue) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center bg-white border border-gray-200 p-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-[#003865] mx-auto"></div>
+          <p className="mt-6 text-gray-700 text-base font-semibold">Loading...</p>
         </div>
       </div>
+    );
+  }
 
-      {/* Reporter Information */}
-      {issue.user && (
-        <div className="bg-gray-50 p-4 rounded-lg mb-6">
-          <h3 className="font-semibold text-gray-700 mb-2">👤 Reported By</h3>
-          <div className="flex items-center gap-4">
-            {issue.user.avatar && (
-              <img
-                src={getImageUrl(issue.user.avatar)}
-                alt={issue.user.fullName}
-                className="w-12 h-12 rounded-full object-cover"
-                onError={(e) => {
-                  e.target.src = getPlaceholderImage();
-                }}
-              />
-            )}
+  return (
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Official Government Header */}
+        <div className="bg-white border-l-4 border-[#003865] shadow-md mb-8 p-6">
+          <div className="flex items-start gap-4">
+            <div className="w-16 h-16 bg-[#003865] rounded flex items-center justify-center flex-shrink-0">
+              <AlertCircle className="w-8 h-8 text-white" />
+            </div>
             <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <p className="font-bold text-gray-800">
-                  {issue.user.fullName || "User"}
-                </p>
-                {issue.isAnonymous && (
-                  <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-semibold">
-                    🔒 Anonymous Post
-                  </span>
-                )}
+              <h1 className="text-2xl font-bold text-[#003865] mb-1">
+                {issue.category}
+              </h1>
+              <p className="text-gray-600 text-sm">
+                रुपन्देही जिल्ला | Rupandehi District Administration Office
+              </p>
+              <div className="flex items-center gap-2 mt-2">
+                <span
+                  className={`px-3 py-1 rounded text-xs font-semibold border ${getStatusColor(
+                    issue.status
+                  )}`}
+                >
+                  {issue.status}
+                </span>
               </div>
-              <p className="text-sm text-gray-600">{issue.user.email}</p>
-              {issue.isAnonymous && (
-                <p className="text-xs text-blue-600 mt-1">
-                  ⓘ This post is anonymous to the public, but you can see the reporter's details as an admin.
-                </p>
-              )}
             </div>
           </div>
         </div>
-      )}
 
-      {/* Issue Image */}
-      <img
-        src={getImageUrl(issue.image)}
-        alt={issue.category}
-        className="w-full h-96 object-cover rounded-lg mb-6 shadow-md"
-        onError={(e) => {
-          e.target.src = getPlaceholderImage();
-        }}
-      />
-
-      {/* Description */}
-      <div className="mb-6">
-        <h3 className="font-semibold text-gray-700 mb-2">📝 Description</h3>
-        <p className="text-gray-700 text-lg">{issue.description}</p>
-      </div>
-
-      {/* Issue Details */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <p className="text-sm text-blue-600 font-semibold">📍 Location</p>
-          <p className="text-gray-800">{issue.locationName}</p>
-        </div>
-        <div className="bg-purple-50 p-4 rounded-lg">
-          <p className="text-sm text-purple-600 font-semibold">
-            📅 Reported Date
-          </p>
-          <p className="text-gray-800">
-            {new Date(issue.createdAt).toLocaleString()}
-          </p>
-        </div>
-        <div className="bg-red-50 p-4 rounded-lg">
-          <p className="text-sm text-red-600 font-semibold">❤️ Upvotes</p>
-          <p className="text-gray-800">{issue.upvoteCount || 0} people care</p>
-        </div>
-        <div className="bg-green-50 p-4 rounded-lg">
-          <p className="text-sm text-green-600 font-semibold">💬 Comments</p>
-          <p className="text-gray-800">
-            {issue.comments?.length || 0} comments
-          </p>
-        </div>
-      </div>
-
-      {/* Status Update Buttons */}
-      <div className="mb-8">
-        <h3 className="font-semibold text-gray-700 mb-3">🛠️ Update Status</h3>
-        <div className="flex gap-3 flex-wrap">
-          <button
-            onClick={() => updateStatus("pending")}
-            disabled={issue.status === "pending"}
-            className={`px-5 py-2 rounded-lg font-semibold transition border shadow-sm flex items-center gap-2 ${
-              issue.status === "pending"
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed border-gray-400"
-                : "bg-yellow-500 text-white hover:bg-yellow-600 border-yellow-600"
-            }`}
-          >
-            <Clock className="w-4 h-4" />
-            Set to Pending
-          </button>
-
-          <button
-            onClick={() => updateStatus("in-progress")}
-            disabled={issue.status === "in-progress"}
-            className={`px-5 py-2 rounded-lg font-semibold transition border shadow-sm flex items-center gap-2 ${
-              issue.status === "in-progress"
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed border-gray-400"
-                : "bg-blue-700 text-white hover:bg-blue-800 border-blue-600"
-            }`}
-          >
-            <AlertCircle className="w-4 h-4" />
-            Set to In Progress
-          </button>
-
-          <button
-            onClick={() => updateStatus("resolved")}
-            disabled={issue.status === "resolved"}
-            className={`px-5 py-2 rounded-lg font-semibold transition border shadow-sm flex items-center gap-2 ${
-              issue.status === "resolved"
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed border-gray-400"
-                : "bg-green-600 text-white hover:bg-green-700 border-green-500"
-            }`}
-          >
-            <CheckCircle2 className="w-4 h-4" />
-            Mark as Resolved
-          </button>
-
-          <button
-            onClick={downloadPDF}
-            className="px-5 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition border border-purple-500 shadow-sm flex items-center gap-2"
-          >
-            <FileDown className="w-4 h-4" />
-            Download PDF Report
-          </button>
-        </div>
-      </div>
-
-      {/* Upload Completion Photos Section */}
-      <div className="border-t-2 border-gray-200 pt-8">
-        <h3 className="font-semibold text-gray-700 mb-4 text-xl">
-          📸 Upload Completion Photo (After)
-        </h3>
-
-        {/* Show Original Image as Before */}
-        {issue?.image && (
-          <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-4">
-            <p className="text-sm font-semibold text-blue-800 mb-2">
-              📷 Before Image (Original Issue Photo):
-            </p>
-            <img
-              src={getImageUrl(issue.image)}
-              alt="Original issue image - will be used as before photo"
-              className="w-full h-64 object-cover rounded-lg shadow"
-            />
-            <p className="text-xs text-blue-600 mt-2">
-              This is the original image submitted by the reporter. It will automatically be used as the "before" photo.
-            </p>
+        {/* Reporter Information */}
+        {issue.user && (
+          <div className="bg-white border border-gray-200 shadow-sm p-5 mb-6">
+            <h3 className="font-semibold text-[#003865] mb-3 text-sm uppercase tracking-wide border-b border-gray-200 pb-2">Reported By</h3>
+            <div className="flex items-center gap-4">
+              {issue.user.avatar && (
+                <img
+                  src={getImageUrl(issue.user.avatar)}
+                  alt={issue.user.fullName}
+                  className="w-12 h-12 rounded-full object-cover border border-gray-200"
+                  onError={(e) => {
+                    e.target.src = getPlaceholderImage();
+                  }}
+                />
+              )}
+              <div className="flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-bold text-gray-800 text-sm">
+                    {issue.user.fullName || "User"}
+                  </p>
+                  {issue.isAnonymous && (
+                    <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded text-xs font-semibold border border-orange-200">
+                      Anonymous Post
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-gray-600 mt-1">{issue.user.email}</p>
+                {issue.isAnonymous && (
+                  <p className="text-xs text-[#003865] mt-2 bg-blue-50 p-2 rounded border border-blue-200">
+                    This post is anonymous to the public, but you can see the reporter's details as an admin.
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
         )}
+
+        {/* Issue Image */}
+        <div className="bg-white border border-gray-200 shadow-sm p-5 mb-6">
+          <img
+            src={getImageUrl(issue.image)}
+            alt={issue.category}
+            className="w-full h-96 object-cover rounded border border-gray-200"
+            onError={(e) => {
+              e.target.src = getPlaceholderImage();
+            }}
+          />
+        </div>
+
+        {/* Description */}
+        <div className="bg-white border border-gray-200 shadow-sm p-5 mb-6">
+          <h3 className="font-semibold text-[#003865] mb-3 text-sm uppercase tracking-wide border-b border-gray-200 pb-2">Description</h3>
+          <p className="text-gray-700 text-sm leading-relaxed">{issue.description}</p>
+        </div>
+
+        {/* Issue Details */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="bg-white border border-gray-200 shadow-sm p-4">
+            <p className="text-xs text-[#003865] font-semibold uppercase tracking-wide mb-1">Location</p>
+            <p className="text-gray-800 text-sm">{issue.locationName}</p>
+          </div>
+          <div className="bg-white border border-gray-200 shadow-sm p-4">
+            <p className="text-xs text-[#003865] font-semibold uppercase tracking-wide mb-1">Reported Date</p>
+            <p className="text-gray-800 text-sm">
+              {new Date(issue.createdAt).toLocaleString()}
+            </p>
+          </div>
+          <div className="bg-white border border-gray-200 shadow-sm p-4">
+            <p className="text-xs text-[#003865] font-semibold uppercase tracking-wide mb-1">Upvotes</p>
+            <p className="text-gray-800 text-sm">{issue.upvoteCount || 0} people care</p>
+          </div>
+          <div className="bg-white border border-gray-200 shadow-sm p-4">
+            <p className="text-xs text-[#003865] font-semibold uppercase tracking-wide mb-1">Comments</p>
+            <p className="text-gray-800 text-sm">
+              {issue.comments?.length || 0} comments
+            </p>
+          </div>
+        </div>
+
+        {/* Status Update Section */}
+        <div className="bg-white border border-gray-200 shadow-sm p-6 mb-6">
+          <div className="flex items-center justify-between mb-5 border-b border-gray-200 pb-3">
+            <h3 className="font-bold text-[#003865] text-sm uppercase tracking-wide flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Update Issue Status
+            </h3>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500 font-medium">Current:</span>
+              <span
+                className={`px-3 py-1 rounded text-xs font-semibold border capitalize ${getStatusColor(
+                  issue.status
+                )}`}
+              >
+                {issue.status}
+              </span>
+            </div>
+          </div>
+
+          {/* Status Options Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            {/* Pending Status Card */}
+            <button
+              onClick={() => updateStatus("pending")}
+              disabled={issue.status === "pending"}
+              className={`p-4 rounded border-2 transition-all text-left ${
+                issue.status === "pending"
+                  ? "bg-gray-100 border-gray-300 cursor-not-allowed opacity-60"
+                  : "bg-white border-yellow-300 hover:border-yellow-500 hover:bg-yellow-50 hover:shadow-sm"
+              }`}
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className={`w-10 h-10 rounded flex items-center justify-center flex-shrink-0 ${
+                  issue.status === "pending" ? "bg-gray-300" : "bg-yellow-500"
+                }`}>
+                  <Clock className={`w-5 h-5 ${issue.status === "pending" ? "text-gray-500" : "text-white"}`} />
+                </div>
+                {issue.status === "pending" && (
+                  <div className="bg-[#003865] text-white text-xs font-bold px-2 py-0.5 rounded">
+                    Current
+                  </div>
+                )}
+              </div>
+              <h4 className="font-bold text-gray-900 mb-1 text-sm">Set to Pending</h4>
+              <p className="text-xs text-gray-600">
+                Mark issue as under review by authorities
+              </p>
+            </button>
+
+            {/* In Progress Status Card */}
+            <button
+              onClick={() => updateStatus("in-progress")}
+              disabled={issue.status === "in-progress"}
+              className={`p-4 rounded border-2 transition-all text-left ${
+                issue.status === "in-progress"
+                  ? "bg-gray-100 border-gray-300 cursor-not-allowed opacity-60"
+                  : "bg-white border-blue-300 hover:border-blue-500 hover:bg-blue-50 hover:shadow-sm"
+              }`}
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className={`w-10 h-10 rounded flex items-center justify-center flex-shrink-0 ${
+                  issue.status === "in-progress" ? "bg-gray-300" : "bg-blue-600"
+                }`}>
+                  <AlertCircle className={`w-5 h-5 ${issue.status === "in-progress" ? "text-gray-500" : "text-white"}`} />
+                </div>
+                {issue.status === "in-progress" && (
+                  <div className="bg-[#003865] text-white text-xs font-bold px-2 py-0.5 rounded">
+                    Current
+                  </div>
+                )}
+              </div>
+              <h4 className="font-bold text-gray-900 mb-1 text-sm">Set to In Progress</h4>
+              <p className="text-xs text-gray-600">
+                Indicate that work has started on this issue
+              </p>
+            </button>
+
+            {/* Resolved Status Card */}
+            <button
+              onClick={() => updateStatus("resolved")}
+              disabled={issue.status === "resolved"}
+              className={`p-4 rounded border-2 transition-all text-left ${
+                issue.status === "resolved"
+                  ? "bg-gray-100 border-gray-300 cursor-not-allowed opacity-60"
+                  : "bg-white border-green-300 hover:border-green-500 hover:bg-green-50 hover:shadow-sm"
+              }`}
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className={`w-10 h-10 rounded flex items-center justify-center flex-shrink-0 ${
+                  issue.status === "resolved" ? "bg-gray-300" : "bg-green-600"
+                }`}>
+                  <CheckCircle2 className={`w-5 h-5 ${issue.status === "resolved" ? "text-gray-500" : "text-white"}`} />
+                </div>
+                {issue.status === "resolved" && (
+                  <div className="bg-[#003865] text-white text-xs font-bold px-2 py-0.5 rounded">
+                    Current
+                  </div>
+                )}
+              </div>
+              <h4 className="font-bold text-gray-900 mb-1 text-sm">Mark as Resolved</h4>
+              <p className="text-xs text-gray-600">
+                Confirm that the issue has been fully resolved
+              </p>
+            </button>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="border-t border-gray-200 pt-4 mt-4">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <button
+                onClick={downloadPDF}
+                className="px-5 py-2.5 bg-[#003865] text-white rounded border border-[#003865] font-semibold hover:bg-[#002D4F] transition-colors text-sm flex items-center gap-2"
+              >
+                <FileDown className="w-4 h-4" />
+                Download PDF Report
+              </button>
+              <div className="text-xs text-gray-500 flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Click on a status card above to update</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Upload Completion Photos Section */}
+        <div className="bg-white border border-gray-200 shadow-sm p-6 mb-6">
+          <h3 className="font-semibold text-[#003865] mb-4 text-sm uppercase tracking-wide border-b border-gray-200 pb-2">
+            Upload Completion Photo (After)
+          </h3>
+
+          {/* Show Original Image as Before */}
+          {issue?.image && (
+            <div className="bg-blue-50 border border-blue-200 rounded p-4 mb-4">
+              <p className="text-sm font-semibold text-[#003865] mb-2">
+                Before Image (Original Issue Photo):
+              </p>
+              <img
+                src={getImageUrl(issue.image)}
+                alt="Original issue image - will be used as before photo"
+                className="w-full h-64 object-cover rounded border border-gray-200"
+              />
+              <p className="text-xs text-gray-600 mt-2">
+                This is the original image submitted by the reporter. It will automatically be used as the "before" photo.
+              </p>
+            </div>
+          )}
 
         <form onSubmit={uploadCompletionPhotos} className="space-y-4">
           {/* After Image */}
@@ -292,10 +387,10 @@ export default function AdminIssueDetails() {
           <button
             type="submit"
             disabled={uploading || !afterImage}
-            className={`w-full py-3 rounded-lg font-semibold transition border shadow-sm flex items-center justify-center gap-2 ${
+            className={`w-full py-3 rounded border font-semibold transition text-sm flex items-center justify-center gap-2 ${
               uploading || !afterImage
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed border-gray-400"
-                : "bg-blue-700 text-white hover:bg-blue-800 border-blue-600"
+                : "bg-[#003865] text-white hover:bg-[#002D4F] border-[#003865]"
             }`}
           >
             {uploading ? (
@@ -316,52 +411,53 @@ export default function AdminIssueDetails() {
         </form>
       </div>
 
-      {/* Display Completion Photos */}
-      {completionPhotos && completionPhotos.length > 0 && (
-        <div className="border-t-2 border-gray-200 pt-8 mt-8">
-          <h3 className="font-semibold text-gray-700 mb-4 text-xl">
-            🎉 Completion Photos
-          </h3>
-          <div className="space-y-6">
-            {completionPhotos.map((photo) => (
-              <div
-                key={photo._id}
-                className="bg-gray-50 p-6 rounded-lg shadow-md"
-              >
-                <p className="text-sm text-gray-600 mb-4">
-                  Uploaded on {new Date(photo.uploadedAt).toLocaleString()}
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="font-semibold text-gray-700 mb-2">
-                      📷 Before
-                    </p>
-                    <img
-                      src={getImageUrl(photo.beforeImage)}
-                      alt="Before"
-                      className="w-full h-64 object-cover rounded-lg shadow"
-                      onError={(e) => {
-                        e.target.src = getPlaceholderImage();
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-700 mb-2">✨ After</p>
-                    <img
-                      src={getImageUrl(photo.afterImage)}
-                      alt="After"
-                      className="w-full h-64 object-cover rounded-lg shadow"
-                      onError={(e) => {
-                        e.target.src = getPlaceholderImage();
-                      }}
-                    />
+        {/* Display Completion Photos */}
+        {completionPhotos && completionPhotos.length > 0 && (
+          <div className="bg-white border border-gray-200 shadow-sm p-6">
+            <h3 className="font-semibold text-[#003865] mb-4 text-sm uppercase tracking-wide border-b border-gray-200 pb-2">
+              Completion Photos
+            </h3>
+            <div className="space-y-5">
+              {completionPhotos.map((photo) => (
+                <div
+                  key={photo._id}
+                  className="bg-gray-50 border border-gray-200 p-5 rounded"
+                >
+                  <p className="text-xs text-gray-600 mb-4">
+                    Uploaded on {new Date(photo.uploadedAt).toLocaleString()}
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="font-semibold text-gray-700 mb-2 text-sm">
+                        Before
+                      </p>
+                      <img
+                        src={getImageUrl(photo.beforeImage)}
+                        alt="Before"
+                        className="w-full h-64 object-cover rounded border border-gray-200"
+                        onError={(e) => {
+                          e.target.src = getPlaceholderImage();
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-700 mb-2 text-sm">After</p>
+                      <img
+                        src={getImageUrl(photo.afterImage)}
+                        alt="After"
+                        className="w-full h-64 object-cover rounded border border-gray-200"
+                        onError={(e) => {
+                          e.target.src = getPlaceholderImage();
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

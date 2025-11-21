@@ -16,19 +16,16 @@ export default function IssueCard({ issue }) {
   // Status configuration
   const statusConfig = {
     pending: {
-      color: "bg-orange-100 text-orange-800 border-orange-200",
+      color: "bg-yellow-100 text-yellow-800 border-yellow-300",
       label: "Under Review",
-      icon: "🕒",
     },
     "in-progress": {
-      color: "bg-blue-100 text-blue-800 border-blue-200",
+      color: "bg-blue-100 text-blue-800 border-blue-300",
       label: "In Progress",
-      icon: "🚧",
     },
     resolved: {
-      color: "bg-green-100 text-green-800 border-green-200",
+      color: "bg-green-100 text-green-800 border-green-300",
       label: "Resolved",
-      icon: "✅",
     },
   };
 
@@ -79,21 +76,20 @@ export default function IssueCard({ issue }) {
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border-2 border-purple-100 hover:shadow-2xl hover:border-purple-300 transition-all duration-300 overflow-hidden h-full flex flex-col transform hover:-translate-y-2 hover:scale-[1.02]">
+    <div className="bg-white border border-gray-200 shadow-sm hover:shadow transition-all duration-200 overflow-hidden h-full flex flex-col">
       {/* Image Section */}
       <Link to={`/issue/${issue._id}`} className="block flex-shrink-0">
         <div className="relative group">
           <img
             src={issue.image}
-            className="w-full h-52 object-cover transition-transform duration-300 group-hover:scale-105"
+            className="w-full h-52 object-cover"
             alt={issue.category}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-          <div className="absolute top-4 right-4">
+          <div className="absolute top-3 right-3">
             <span
-              className={`px-4 py-2 rounded-xl text-sm font-bold border-2 shadow-lg backdrop-blur-sm ${status.color}`}
+              className={`px-3 py-1.5 rounded text-xs font-semibold border shadow-sm ${status.color}`}
             >
-              {status.icon} {status.label}
+              {status.label}
             </span>
           </div>
         </div>
@@ -125,37 +121,37 @@ export default function IssueCard({ issue }) {
         </Link>
 
         {/* Action Section */}
-        <div className="mt-auto pt-5 border-t-2 border-purple-100">
+        <div className="mt-auto pt-4 border-t border-gray-200">
           <div className="flex items-center justify-between gap-3">
             <button
               onClick={handleToggleUpvote}
               disabled={loading}
-              className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold transition-all shrink-0 border-2 shadow-lg transform hover:scale-105 ${
+              className={`flex items-center gap-2 px-4 py-2 rounded border font-semibold transition-colors shrink-0 text-sm ${
                 upvoted
-                  ? "bg-gradient-to-r from-red-50 to-pink-50 text-red-700 border-red-300 hover:from-red-100 hover:to-pink-100"
-                  : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-gray-300 hover:from-gray-100 hover:to-gray-200"
+                  ? "bg-red-50 text-red-700 border-red-300 hover:bg-red-100"
+                  : "bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100"
               } ${
                 loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
               }`}
             >
               <Heart
-                className={`w-5 h-5 ${
+                className={`w-4 h-4 ${
                   upvoted ? "text-red-600 fill-red-600" : "text-gray-400"
                 }`}
               />
-              <span className="font-bold min-w-5 text-center text-lg">
+              <span className="font-semibold min-w-5 text-center">
                 {upvoteCount}
               </span>
-              <span className="text-sm whitespace-nowrap hidden sm:inline">
-                {upvoted ? "💖 Supported" : "🤝 Support"}
+              <span className="text-xs whitespace-nowrap hidden sm:inline">
+                {upvoted ? "Supported" : "Support"}
               </span>
             </button>
 
             <Link
               to={`/issue/${issue._id}`}
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-bold hover:from-blue-700 hover:to-purple-700 transition-all text-sm whitespace-nowrap shrink-0 text-center border-2 border-purple-400 shadow-xl transform hover:scale-105"
+              className="px-5 py-2 bg-[#003865] text-white rounded border border-[#003865] font-semibold hover:bg-[#002D4F] transition-colors text-sm whitespace-nowrap shrink-0 text-center"
             >
-              👁️ View Details
+              View Details
             </Link>
           </div>
         </div>

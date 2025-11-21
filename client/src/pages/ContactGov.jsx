@@ -32,70 +32,72 @@ export default function ContactGov() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12">
+    <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center mb-6 flex-wrap gap-4">
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-3xl flex items-center justify-center shadow-2xl transform hover:scale-110 transition-transform">
-              <Building2 className="w-10 h-10 text-white" />
+        {/* Official Government Header */}
+        <div className="bg-white border-l-4 border-[#003865] shadow-md mb-8 p-6">
+          <div className="flex items-start gap-4">
+            <div className="w-16 h-16 bg-[#003865] rounded flex items-center justify-center flex-shrink-0">
+              <Building2 className="w-8 h-8 text-white" />
             </div>
-            <div className="text-center md:text-left">
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent whitespace-nowrap">
-                📞 Government Contact
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold text-[#003865] mb-1">
+                Government Contact
               </h1>
-              <p className="text-gray-700 mt-2 text-xl font-semibold whitespace-nowrap">
+              <p className="text-gray-600 text-sm">
+                रुपन्देही जिल्ला | Rupandehi District Administration Office
+              </p>
+              <p className="text-gray-500 text-xs mt-1">
                 Municipal Office Information
               </p>
             </div>
           </div>
-          <div className="w-40 h-1.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 mx-auto rounded-full shadow-lg"></div>
         </div>
 
         {/* Contact Cards */}
-        <div className="space-y-6 mb-10">
+        <div className="space-y-5 mb-8">
           {offices.map((office, idx) => (
             <div
               key={idx}
-              className={`bg-gradient-to-br ${office.bg} backdrop-blur-sm rounded-3xl shadow-2xl border-2 ${office.border} p-8 transform hover:scale-105 transition-all duration-300`}
+              className="bg-white border border-gray-200 shadow-sm p-6"
             >
-              <div className="flex items-start gap-4 mb-6">
-                <div className={`w-16 h-16 bg-gradient-to-br ${office.color} rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg`}>
-                  <Building2 className="w-8 h-8 text-white" />
+              <div className="flex items-start gap-4 mb-5 border-b border-gray-200 pb-4">
+                <div className="w-12 h-12 bg-[#003865] rounded flex items-center justify-center flex-shrink-0">
+                  <Building2 className="w-6 h-6 text-white" />
                 </div>
-                <h2 className={`text-2xl font-bold bg-gradient-to-r ${office.color} bg-clip-text text-transparent flex-1`}>
+                <h2 className="text-lg font-bold text-[#003865] flex-1">
                   {office.name}
                 </h2>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-xl p-4 border-2 border-white/80">
-                  <div className={`w-10 h-10 bg-gradient-to-br ${office.color} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 p-3 rounded">
+                  <div className="w-10 h-10 bg-[#003865] rounded flex items-center justify-center flex-shrink-0">
                     <Phone className="w-5 h-5 text-white" />
                   </div>
                   <div>
                     <p className="text-xs text-gray-600 font-semibold uppercase tracking-wide">Phone</p>
-                    <p className="text-gray-900 font-bold">{office.phone}</p>
+                    <p className="text-gray-900 font-semibold text-sm">{office.phone}</p>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-xl p-4 border-2 border-white/80">
-                  <div className={`w-10 h-10 bg-gradient-to-br ${office.color} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 p-3 rounded">
+                  <div className="w-10 h-10 bg-[#003865] rounded flex items-center justify-center flex-shrink-0">
                     <Mail className="w-5 h-5 text-white" />
                   </div>
                   <div>
                     <p className="text-xs text-gray-600 font-semibold uppercase tracking-wide">Email</p>
-                    <p className="text-gray-900 font-bold text-sm break-all">{office.email}</p>
+                    <p className="text-gray-900 font-semibold text-xs break-all">{office.email}</p>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-xl p-4 border-2 border-white/80">
-                  <div className={`w-10 h-10 bg-gradient-to-br ${office.color} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 p-3 rounded">
+                  <div className="w-10 h-10 bg-[#003865] rounded flex items-center justify-center flex-shrink-0">
                     <MapPin className="w-5 h-5 text-white" />
                   </div>
                   <div>
                     <p className="text-xs text-gray-600 font-semibold uppercase tracking-wide">Address</p>
-                    <p className="text-gray-900 font-bold">{office.address}</p>
+                    <p className="text-gray-900 font-semibold text-sm">{office.address}</p>
                   </div>
                 </div>
               </div>
@@ -104,10 +106,10 @@ export default function ContactGov() {
         </div>
 
         {/* Map */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border-2 border-purple-200 overflow-hidden mb-10">
-          <div className="p-6 border-b-2 border-purple-200">
-            <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-3">
-              <MapPin className="w-6 h-6 text-blue-600" />
+        <div className="bg-white border border-gray-200 shadow-sm overflow-hidden mb-8">
+          <div className="p-4 border-b border-gray-200 bg-gray-50">
+            <h3 className="text-lg font-bold text-[#003865] flex items-center gap-2">
+              <MapPin className="w-5 h-5" />
               Location Map
             </h3>
           </div>
@@ -120,9 +122,12 @@ export default function ContactGov() {
         </div>
 
         {/* Footer */}
-        <div className="text-center bg-white/60 backdrop-blur-sm rounded-2xl shadow-xl border-2 border-purple-200 p-6">
-          <p className="text-sm text-gray-700 font-semibold">
-            🏛️ Municipal Corporation Public Service Portal • Direct Government Contact
+        <div className="text-center bg-white border border-gray-200 p-5">
+          <p className="text-xs text-gray-600 font-medium">
+            Municipal Corporation Public Service Portal • Direct Government Contact
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            नेपाल सरकार | Government of Nepal
           </p>
         </div>
       </div>

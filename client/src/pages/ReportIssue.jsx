@@ -19,6 +19,8 @@ import {
   Navigation,
   Map as MapIcon,
   Trash2,
+  Sparkles,
+  FileText,
 } from "lucide-react";
 
 export default function ReportIssue() {
@@ -48,9 +50,12 @@ export default function ReportIssue() {
     setImage(null);
   };
 
+  const [aiAnalysis, setAiAnalysis] = useState(null);
+  const [showAIAnalysis, setShowAIAnalysis] = useState(false);
+
   const generateAI = async () => {
     if (!image) {
-      warning("Please upload an image document first");
+      warning("Please upload an image first to use AI analysis");
       return;
     }
 
@@ -58,12 +63,67 @@ export default function ReportIssue() {
     try {
       const fd = new FormData();
       fd.append("image", image);
+      // Include existing description if user wants to enhance it
+      if (description && description.trim().length > 0) {
+        fd.append("description", description);
+      }
+      
       const { data } = await api.post("/issues/ai-generate", fd);
-      setDescription(data.aiDescription || "");
-      success("AI description generated successfully!");
+      
+      // Only set description if user hasn't written one yet
+      // If user has written something, they can still use AI suggestions but it won't overwrite
+      if (!description || description.trim().length < 10) {
+        setDescription(data.aiDescription || "");
+      } else {
+        // If user already has a description, show AI suggestion but don't auto-replace
+        info("AI description generated! You can replace your text or keep what you wrote.");
+      }
+      
+      // Store comprehensive AI analysis
+      if (data.category || data.priority || data.severity || data.tags) {
+        setAiAnalysis({
+          category: data.category,
+          priority: data.priority,
+          severity: data.severity,
+          tags: data.tags,
+          categories: data.categories,
+          aiDescription: data.aiDescription, // Store AI description separately
+        });
+        
+        // Auto-select category if suggested with high confidence (only if user hasn't selected)
+        if (data.category && !selectedCategory) {
+          setSelectedCategory(data.category);
+        }
+        
+        // Show AI analysis panel
+        setShowAIAnalysis(true);
+      }
+      
+      success("AI analysis completed. Check the insights below.");
     } catch (err) {
       console.error("AI generation error:", err);
-      error("Failed to generate description. Please try again.");
+      error("Failed to generate AI description. Please try again or write your own description.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const enhanceDescription = async () => {
+    if (!description || description.trim().length < 10) {
+      warning("Please write a description first (at least 10 characters)");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data } = await api.post("/issues/ai-enhance", { description });
+      if (data.enhanced) {
+        setDescription(data.enhanced);
+        success("Description enhanced with AI.");
+      }
+    } catch (err) {
+      console.error("Description enhancement error:", err);
+      error("Failed to enhance description. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -222,83 +282,68 @@ export default function ReportIssue() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header Section */}
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center mb-4 flex-wrap gap-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg transform hover:scale-105 transition-transform">
-              <svg
-                className="w-8 h-8 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
+        {/* Official Government Header */}
+        <div className="bg-white border-l-4 border-[#003865] shadow-md mb-8 p-6">
+          <div className="flex items-start gap-4">
+            <div className="w-16 h-16 bg-[#003865] rounded flex items-center justify-center flex-shrink-0">
+              <FileText className="w-8 h-8 text-white" />
             </div>
-            <div className="text-center md:text-left">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent whitespace-nowrap">
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold text-[#003865] mb-1">
                 Public Issue Reporting System
               </h1>
-              <p className="text-gray-600 mt-2 text-lg whitespace-nowrap">
-                🏛️ Municipal Corporation - Citizen Service Portal
+              <p className="text-gray-600 text-sm">
+                रुपन्देही जिल्ला | Rupandehi District Administration Office
+              </p>
+              <p className="text-gray-500 text-xs mt-1">
+                नागरिक सेवा पोर्टल | Citizen Service Portal
               </p>
             </div>
+            <div className="hidden md:block text-right border-l border-gray-200 pl-4">
+              <p className="text-xs text-gray-500 mb-1">Reference No.</p>
+              <p className="text-sm font-mono text-[#003865]">AUTO-GEN</p>
+            </div>
           </div>
-          <div className="w-40 h-1.5 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 mx-auto rounded-full shadow-lg"></div>
         </div>
 
         {/* Progress Indicator */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border-2 border-purple-100 p-8 mb-8">
+        <div className="bg-white border border-gray-200 shadow-sm mb-6 p-6">
+          <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">Submission Progress</h3>
           <div className="flex items-center justify-between">
             {steps.map((step, index) => (
-              <div key={step.number} className="flex items-center">
-                <div
-                  className={`flex items-center justify-center w-12 h-12 rounded-xl border-2 ${
-                    step.completed || currentStep === step.number
-                      ? "bg-gradient-to-br from-blue-600 to-purple-600 border-purple-400 text-white shadow-lg"
-                      : "border-gray-300 text-gray-500 bg-white"
-                  } font-bold transition-all duration-300`}
-                >
-                  {step.completed ? (
-                    <svg
-                      className="w-6 h-6"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={3}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  ) : (
-                    step.number
-                  )}
+              <div key={step.number} className="flex items-center flex-1">
+                <div className="flex items-center">
+                  <div
+                    className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
+                      step.completed || currentStep === step.number
+                        ? "bg-[#003865] border-[#003865] text-white"
+                        : "border-gray-300 text-gray-500 bg-white"
+                    } font-semibold text-sm`}
+                  >
+                    {step.completed ? (
+                      <CheckCircle className="w-5 h-5" />
+                    ) : (
+                      step.number
+                    )}
+                  </div>
+                  <span
+                    className={`ml-3 text-xs font-medium ${
+                      currentStep === step.number
+                        ? "text-[#003865] font-semibold"
+                        : "text-gray-600"
+                    }`}
+                  >
+                    {step.title}
+                  </span>
                 </div>
-                <span
-                  className={`ml-3 text-sm font-semibold ${
-                    currentStep === step.number
-                      ? "text-purple-700"
-                      : "text-gray-600"
-                  }`}
-                >
-                  {step.title}
-                </span>
                 {index < steps.length - 1 && (
                   <div
-                    className={`w-16 h-1 mx-4 rounded-full transition-all duration-300 ${
+                    className={`h-0.5 mx-4 flex-1 ${
                       step.completed
-                        ? "bg-gradient-to-r from-blue-600 to-purple-600"
-                        : "bg-gray-300"
+                        ? "bg-[#003865]"
+                        : "bg-gray-200"
                     }`}
                   />
                 )}
@@ -308,82 +353,83 @@ export default function ReportIssue() {
         </div>
 
         {/* Main Form Container */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl border-2 border-purple-100 overflow-hidden">
+        <div className="bg-white border border-gray-200 shadow-sm">
           {/* Form Content */}
-          <div className="p-8 md:p-10">
+          <div className="p-6 md:p-8">
             <form onSubmit={handleSubmit}>
               {/* Step 1: Issue Details */}
               {currentStep === 1 && (
-                <div className="space-y-8">
-                  <div className="border-b-2 border-purple-100 pb-6">
-                    <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3">
-                      📋 Issue Documentation
+                <div className="space-y-6">
+                  <div className="border-b border-gray-200 pb-4">
+                    <h2 className="text-xl font-bold text-[#003865] mb-2">
+                      Issue Documentation
                     </h2>
-                    <p className="text-gray-600 text-lg">
-                      Please provide detailed information about the community
-                      issue
+                    <p className="text-gray-600 text-sm">
+                      Please provide detailed information about the community issue you wish to report
                     </p>
                   </div>
 
-                  {/* Evidence Upload - FIXED VERSION */}
+                  {/* Evidence Upload */}
                   <div>
-                    <label className="block text-lg font-medium text-gray-900 mb-4">
-                      Evidence Documentation{" "}
+                    <label className="block text-sm font-semibold text-gray-900 mb-2 uppercase tracking-wide">
+                      Evidence Documentation
+                      <span className="text-red-600 ml-1">*</span>
                       {image && (
-                        <span className="text-green-600 text-sm">
+                        <span className="text-green-600 text-xs font-normal normal-case ml-2">
                           ✓ Uploaded
                         </span>
                       )}
                     </label>
+                    <p className="text-xs text-gray-500 mb-3">
+                      Please upload clear photographic evidence of the issue (Required)
+                    </p>
 
                     {!image ? (
-                      <div className="border-3 border-dashed border-purple-300 rounded-2xl p-10 text-center hover:border-purple-500 transition-all duration-300 bg-gradient-to-br from-purple-50 to-blue-50 cursor-pointer hover:shadow-xl group">
+                      <div className="relative border-2 border-dashed border-gray-300 rounded p-8 text-center bg-gray-50 hover:border-[#003865] hover:bg-gray-100 transition-colors cursor-pointer">
                         <input
                           type="file"
-                          className="absolute opacity-0 w-full h-full cursor-pointer"
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                           onChange={handleImageUpload}
                           accept="image/*"
                         />
-                        <div className="pointer-events-none">
-                          <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <Upload className="w-10 h-10 text-white" />
+                        <div className="pointer-events-none relative z-0">
+                          <div className="w-16 h-16 mx-auto mb-4 bg-[#003865] rounded flex items-center justify-center">
+                            <Upload className="w-8 h-8 text-white" />
                           </div>
-                          <p className="text-gray-800 font-bold mb-2 text-xl">
-                            📸 Upload Evidence Photo
+                          <p className="text-gray-800 font-semibold mb-2">
+                            Upload Evidence Photo
                           </p>
-                          <p className="text-gray-600 text-lg">
-                            Click to upload clear photographic evidence of the
-                            issue
+                          <p className="text-gray-600 text-sm">
+                            Click to upload clear photographic evidence of the issue
                           </p>
                         </div>
                       </div>
                     ) : (
-                      <div className="border-3 border-green-300 border-dashed rounded-2xl p-6 bg-gradient-to-br from-green-50 to-emerald-50 shadow-lg">
+                      <div className="border-2 border-green-200 bg-green-50 p-4 rounded">
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center shadow-md">
-                              <CheckCircle className="w-8 h-8 text-white" />
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-green-600 rounded flex items-center justify-center">
+                              <CheckCircle className="w-6 h-6 text-white" />
                             </div>
                             <div>
-                              <p className="font-semibold text-gray-900">
+                              <p className="font-semibold text-gray-900 text-sm">
                                 {image.name}
                               </p>
-                              <p className="text-sm text-gray-600">
-                                {(image.size / 1024 / 1024).toFixed(2)} MB •
-                                Ready for submission
+                              <p className="text-xs text-gray-600">
+                                {(image.size / 1024 / 1024).toFixed(2)} MB • Ready for submission
                               </p>
                             </div>
                           </div>
                           <button
                             type="button"
                             onClick={removeImage}
-                            className="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50 transition-colors flex items-center gap-2 border border-red-200 hover:border-red-300"
+                            className="text-red-600 hover:text-red-800 p-2 rounded hover:bg-red-50 transition-colors border border-red-200"
                             title="Remove image"
                           >
-                            <Trash2 className="w-5 h-5" />
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
-                        <div className="mt-4 flex gap-3">
+                        <div className="mt-3 flex gap-2">
                           <button
                             type="button"
                             onClick={() =>
@@ -391,9 +437,9 @@ export default function ReportIssue() {
                                 .querySelector('input[type="file"]')
                                 .click()
                             }
-                            className="px-4 py-2 text-blue-700 border-2 border-blue-700 rounded-lg hover:bg-blue-50 transition-colors text-sm font-medium flex items-center gap-2 shadow-sm hover:shadow-md"
+                            className="px-3 py-1.5 text-[#003865] border border-[#003865] rounded hover:bg-[#003865] hover:text-white transition-colors text-xs font-medium flex items-center gap-2"
                           >
-                            <Camera className="w-4 h-4" />
+                            <Camera className="w-3 h-3" />
                             Change Photo
                           </button>
                           <input
@@ -408,62 +454,218 @@ export default function ReportIssue() {
                   </div>
 
                   {/* Description */}
-                  <div>
-                    <label className="block text-lg font-medium text-gray-900 mb-4">
-                      Detailed Description
-                    </label>
+                  <div className="relative">
+                    <div className="flex items-center justify-between mb-4">
+                      <label htmlFor="description-textarea" className="block text-lg font-medium text-gray-900 cursor-pointer">
+                        Detailed Description
+                      </label>
+                      <span className="text-sm text-gray-500 font-medium">
+                        ✍️ Write yourself or use AI
+                      </span>
+                    </div>
                     <textarea
-                      placeholder="Provide a comprehensive description of the issue, including nature, impact, and any relevant observations..."
-                      className="w-full border border-gray-300 p-4 rounded-lg focus:border-blue-600 focus:ring-2 focus:ring-blue-100 focus:outline-none resize-none bg-white"
-                      rows="5"
+                      id="description-textarea"
+                      name="description"
+                      placeholder="Write your own description of the issue here... OR click 'AI Analysis' button below to generate one from your photo"
+                      className="w-full border-2 border-gray-300 p-4 rounded-lg focus:border-blue-600 focus:ring-2 focus:ring-blue-100 focus:outline-none resize-vertical bg-white text-gray-900 cursor-text relative z-10"
+                      rows="6"
                       onChange={(e) => setDescription(e.target.value)}
                       value={description}
                       required
+                      autoComplete="off"
                     />
+                    {!description && (
+                      <p className="text-sm text-gray-500 mt-2 flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4" />
+                        You can write your own description or use AI to generate one from your photo
+                      </p>
+                    )}
 
-                    <button
-                      type="button"
-                      onClick={generateAI}
-                      disabled={loading || !image}
-                      className="w-full mt-4 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 text-white py-4 rounded-xl hover:from-purple-700 hover:via-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-300 font-bold text-lg flex items-center justify-center gap-3 border-2 border-purple-400 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 hover:scale-[1.02] disabled:transform-none disabled:shadow-none"
-                    >
-                      {loading ? (
-                        <>
-                          <Loader2 className="w-6 h-6 animate-spin" />
-                          <span>✨ Processing Documentation...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Zap className="w-6 h-6" />
-                          <span>🤖 Generate AI Description</span>
-                        </>
+                    <div className="flex gap-3 mt-3">
+                      <button
+                        type="button"
+                        onClick={generateAI}
+                        disabled={loading || !image}
+                        className="flex-1 bg-[#003865] text-white py-2.5 px-4 rounded border border-[#003865] hover:bg-[#002D4F] disabled:bg-gray-400 disabled:border-gray-400 disabled:cursor-not-allowed transition-colors text-sm font-semibold flex items-center justify-center gap-2"
+                      >
+                        {loading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>Processing...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Zap className="w-4 h-4" />
+                            <span>Generate AI Description (Optional)</span>
+                          </>
+                        )}
+                      </button>
+                      
+                      {description && description.trim().length >= 10 && (
+                        <button
+                          type="button"
+                          onClick={enhanceDescription}
+                          disabled={loading}
+                          className="px-4 py-2.5 bg-green-700 text-white rounded border border-green-700 hover:bg-green-800 disabled:bg-gray-400 disabled:border-gray-400 disabled:cursor-not-allowed transition-colors text-sm font-semibold flex items-center justify-center gap-2"
+                          title="Enhance your written description with AI"
+                        >
+                          <Zap className="w-4 h-4" />
+                          <span className="hidden sm:inline">Enhance</span>
+                        </button>
                       )}
-                    </button>
+                    </div>
+                    
+                    {/* Show AI-generated description as suggestion if user already has text */}
+                    {showAIAnalysis && aiAnalysis?.aiDescription && description && description.trim().length >= 10 && (
+                      <div className="mt-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-xl">
+                        <div className="flex items-start justify-between mb-2">
+                          <p className="text-sm font-semibold text-blue-900 flex items-center gap-2">
+                            <Zap className="w-4 h-4" />
+                            AI Generated Description (Suggestion):
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => setDescription(aiAnalysis.aiDescription)}
+                            className="text-xs bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                          >
+                            Use This
+                          </button>
+                        </div>
+                        <p className="text-sm text-gray-700 italic">{aiAnalysis.aiDescription}</p>
+                      </div>
+                    )}
+
+                    {/* AI Analysis Insights Panel */}
+                    {showAIAnalysis && aiAnalysis && (
+                      <div className="mt-4 bg-blue-50 border-l-4 border-[#003865] p-4 rounded">
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="text-sm font-bold text-[#003865] uppercase tracking-wide flex items-center gap-2">
+                            <Zap className="w-4 h-4" />
+                            AI Analysis Insights
+                          </h3>
+                          <button
+                            type="button"
+                            onClick={() => setShowAIAnalysis(false)}
+                            className="text-gray-500 hover:text-gray-700"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {/* Category Suggestions */}
+                          {aiAnalysis.categories && aiAnalysis.categories.length > 0 && (
+                            <div className="bg-white border border-gray-200 p-3 rounded">
+                              <p className="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">Suggested Categories</p>
+                              <div className="space-y-2">
+                                {aiAnalysis.categories.slice(0, 3).map((cat, idx) => (
+                                  <button
+                                    key={idx}
+                                    type="button"
+                                    onClick={() => setSelectedCategory(cat.category)}
+                                    className={`w-full text-left px-2 py-1.5 rounded border text-xs transition-colors ${
+                                      selectedCategory === cat.category
+                                        ? 'bg-[#003865] text-white border-[#003865]'
+                                        : 'bg-white border-gray-300 hover:border-[#003865] hover:bg-gray-50'
+                                    }`}
+                                  >
+                                    <div className="flex items-center justify-between">
+                                      <span className="font-medium">{cat.category}</span>
+                                      <span className={`text-xs px-1.5 py-0.5 rounded ${
+                                        selectedCategory === cat.category ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
+                                      }`}>
+                                        {Math.round(cat.confidence * 100)}%
+                                      </span>
+                                    </div>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Priority & Severity */}
+                          {(aiAnalysis.priority || aiAnalysis.severity) && (
+                            <div className="bg-white border border-gray-200 p-3 rounded">
+                              <p className="text-xs font-semibold text-gray-700 mb-2 uppercase">Priority & Severity</p>
+                              <div className="space-y-2">
+                                {aiAnalysis.priority && (
+                                  <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                                    <span className="text-sm text-gray-700">Priority:</span>
+                                    <span className={`font-bold text-sm px-3 py-1 rounded-full ${
+                                      aiAnalysis.priority === 'high' ? 'bg-red-100 text-red-700' :
+                                      aiAnalysis.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                                      'bg-blue-100 text-blue-700'
+                                    }`}>
+                                      {aiAnalysis.priority.toUpperCase()}
+                                    </span>
+                                  </div>
+                                )}
+                                {aiAnalysis.severity && (
+                                  <div className="p-2 bg-gray-50 rounded-lg">
+                                    <div className="flex items-center justify-between mb-1">
+                                      <span className="text-sm text-gray-700">Severity:</span>
+                                      <span className={`font-bold text-xs px-2 py-1 rounded-full ${
+                                        aiAnalysis.severity.severity === 'critical' ? 'bg-red-100 text-red-700' :
+                                        aiAnalysis.severity.severity === 'high' ? 'bg-orange-100 text-orange-700' :
+                                        aiAnalysis.severity.severity === 'moderate' ? 'bg-yellow-100 text-yellow-700' :
+                                        'bg-blue-100 text-blue-700'
+                                      }`}>
+                                        {aiAnalysis.severity.severity?.toUpperCase()}
+                                      </span>
+                                    </div>
+                                    {aiAnalysis.severity.reasoning && (
+                                      <p className="text-xs text-gray-600 mt-1">{aiAnalysis.severity.reasoning}</p>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Tags */}
+                          {aiAnalysis.tags && aiAnalysis.tags.length > 0 && (
+                            <div className="bg-white border border-gray-200 p-3 rounded md:col-span-2">
+                              <p className="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">Suggested Tags</p>
+                              <div className="flex flex-wrap gap-2">
+                                {aiAnalysis.tags.map((tag, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-medium border border-gray-300"
+                                  >
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
 
               {/* Step 2: Location Information */}
               {currentStep === 2 && (
-                <div className="space-y-8">
-                  <div className="border-b-2 border-purple-100 pb-6">
-                    <h2 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-3">
-                      📍 Location Specification
+                <div className="space-y-6">
+                  <div className="border-b border-gray-200 pb-4">
+                    <h2 className="text-xl font-bold text-[#003865] mb-2">
+                      Location Specification
                     </h2>
-                    <p className="text-gray-600 text-lg">
-                      Precise location information is required for efficient
-                      issue resolution
+                    <p className="text-gray-600 text-sm">
+                      Precise location information is required for efficient issue resolution
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     {/* Category Selection */}
                     <div>
-                      <label className="block text-lg font-medium text-gray-900 mb-4">
+                      <label className="block text-sm font-semibold text-gray-900 mb-2 uppercase tracking-wide">
                         Issue Classification
+                        <span className="text-red-600 ml-1">*</span>
                       </label>
                       <select
-                        className="w-full border border-gray-300 p-4 rounded-lg focus:border-blue-600 focus:ring-2 focus:ring-blue-100 focus:outline-none bg-white"
+                        className="w-full border border-gray-300 p-2.5 rounded focus:border-[#003865] focus:ring-1 focus:ring-[#003865] focus:outline-none bg-white text-sm"
                         value={selectedCategory}
                         onChange={handleCategoryChange}
                         required
@@ -479,11 +681,12 @@ export default function ReportIssue() {
 
                     {/* Ward Selection */}
                     <div>
-                      <label className="block text-lg font-medium text-gray-900 mb-4">
+                      <label className="block text-sm font-semibold text-gray-900 mb-2 uppercase tracking-wide">
                         Municipal Ward
+                        <span className="text-red-600 ml-1">*</span>
                       </label>
                       <select
-                        className="w-full border border-gray-300 p-4 rounded-lg focus:border-blue-600 focus:ring-2 focus:ring-blue-100 focus:outline-none bg-white"
+                        className="w-full border border-gray-300 p-2.5 rounded focus:border-[#003865] focus:ring-1 focus:ring-[#003865] focus:outline-none bg-white text-sm"
                         value={selectedWard}
                         onChange={handleWardChange}
                         required
@@ -500,29 +703,32 @@ export default function ReportIssue() {
 
                   {/* Location Method Selection */}
                   <div>
-                    <label className="block text-lg font-medium text-gray-900 mb-4">
+                    <label className="block text-sm font-semibold text-gray-900 mb-2 uppercase tracking-wide">
                       Location Identification Method
+                      <span className="text-red-600 ml-1">*</span>
                     </label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <button
                         type="button"
                         onClick={getCurrentLocationDirect}
                         disabled={gettingLocation}
-                        className="p-7 border-3 border-green-300 rounded-2xl hover:border-green-500 hover:bg-gradient-to-br hover:from-green-50 hover:to-emerald-50 transition-all duration-300 text-left shadow-lg hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-300 disabled:hover:bg-transparent group transform hover:scale-105"
+                        className="p-4 border-2 border-gray-300 rounded hover:border-[#003865] hover:bg-gray-50 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-300 disabled:hover:bg-transparent"
                       >
-                        <div className="flex items-center gap-4">
-                          <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center group-hover:from-green-600 group-hover:to-emerald-600 transition-colors shadow-md">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-12 h-12 rounded flex items-center justify-center ${
+                            gettingLocation ? 'bg-[#003865]' : 'bg-gray-200'
+                          }`}>
                             {gettingLocation ? (
-                              <Loader2 className="w-8 h-8 text-white animate-spin" />
+                              <Loader2 className="w-6 h-6 text-white animate-spin" />
                             ) : (
-                              <Navigation className="w-8 h-8 text-white" />
+                              <Navigation className="w-6 h-6 text-[#003865]" />
                             )}
                           </div>
                           <div className="flex-1">
-                            <h3 className="font-bold text-gray-900 text-lg mb-1">
-                              🎯 Current Location
+                            <h3 className="font-semibold text-gray-900 text-sm mb-1">
+                              Current Location (GPS)
                             </h3>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-xs text-gray-600">
                               {gettingLocation
                                 ? "Getting your location..."
                                 : "Use device GPS for precise coordinates"}
@@ -534,27 +740,23 @@ export default function ReportIssue() {
                       <button
                         type="button"
                         onClick={() => setShowMap(!showMap)}
-                        className={`p-7 border-3 rounded-2xl transition-all duration-300 text-left shadow-lg hover:shadow-2xl group transform hover:scale-105 ${
+                        className={`p-4 border-2 rounded transition-colors text-left ${
                           showMap
-                            ? "border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50"
-                            : "border-blue-300 hover:border-blue-500 hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50"
+                            ? "border-[#003865] bg-blue-50"
+                            : "border-gray-300 hover:border-[#003865] hover:bg-gray-50"
                         }`}
                       >
-                        <div className="flex items-center gap-4">
-                          <div
-                            className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-colors shadow-md ${
-                              showMap
-                                ? "bg-gradient-to-br from-blue-600 to-indigo-600"
-                                : "bg-gradient-to-br from-blue-500 to-indigo-500 group-hover:from-blue-600 group-hover:to-indigo-600"
-                            }`}
-                          >
-                            <MapIcon className="w-8 h-8 text-white" />
+                        <div className="flex items-center gap-3">
+                          <div className={`w-12 h-12 rounded flex items-center justify-center ${
+                            showMap ? "bg-[#003865]" : "bg-gray-200"
+                          }`}>
+                            <MapIcon className={`w-6 h-6 ${showMap ? 'text-white' : 'text-[#003865]'}`} />
                           </div>
                           <div className="flex-1">
-                            <h3 className="font-bold text-gray-900 text-lg mb-1">
-                              🗺️ Map Selection
+                            <h3 className="font-semibold text-gray-900 text-sm mb-1">
+                              Map Selection
                             </h3>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-xs text-gray-600">
                               {showMap
                                 ? "Map is visible - Click to hide"
                                 : "Select location on interactive map"}
@@ -579,59 +781,59 @@ export default function ReportIssue() {
 
               {/* Step 3: Verification */}
               {currentStep === 3 && (
-                <div className="space-y-8">
-                  <div className="border-b border-gray-200 pb-6">
-                    <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+                <div className="space-y-6">
+                  <div className="border-b border-gray-200 pb-4">
+                    <h2 className="text-xl font-bold text-[#003865] mb-2">
                       Report Verification
                     </h2>
-                    <p className="text-gray-600">
-                      Review and confirm your issue report details
+                    <p className="text-gray-600 text-sm">
+                      Please review and confirm your issue report details before submission
                     </p>
                   </div>
 
-                  <div className="bg-gray-50 rounded-lg p-6 space-y-6">
+                  <div className="bg-gray-50 border border-gray-200 p-5 space-y-5">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <h3 className="font-semibold text-gray-900 mb-3">
+                        <h3 className="text-sm font-semibold text-[#003865] uppercase tracking-wide mb-3 border-b border-gray-300 pb-2">
                           Issue Information
                         </h3>
                         <div className="space-y-3">
                           <div>
-                            <label className="text-sm font-medium text-gray-600">
+                            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
                               Category
                             </label>
-                            <p className="text-gray-900">
+                            <p className="text-sm text-gray-900 mt-1 font-medium">
                               {selectedCategory || "Not specified"}
                             </p>
                           </div>
                           <div>
-                            <label className="text-sm font-medium text-gray-600">
+                            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
                               Ward
                             </label>
-                            <p className="text-gray-900">
-                              {selectedWard || "Not specified"}
+                            <p className="text-sm text-gray-900 mt-1 font-medium">
+                              {selectedWard ? `Ward ${selectedWard}` : "Not specified"}
                             </p>
                           </div>
                           <div>
-                            <label className="text-sm font-medium text-gray-600">
+                            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
                               Evidence File
                             </label>
-                            <p className="text-gray-900">
+                            <p className="text-sm text-gray-900 mt-1 font-medium">
                               {image ? image.name : "No file uploaded"}
                             </p>
                           </div>
                         </div>
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900 mb-3">
+                        <h3 className="text-sm font-semibold text-[#003865] uppercase tracking-wide mb-3 border-b border-gray-300 pb-2">
                           Location Details
                         </h3>
                         <div className="space-y-3">
                           <div>
-                            <label className="text-sm font-medium text-gray-600">
+                            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
                               Location Name
                             </label>
-                            <p className="text-gray-900">
+                            <p className="text-sm text-gray-900 mt-1 font-medium">
                               {locationName || "Not specified"}
                             </p>
                           </div>
@@ -693,91 +895,72 @@ export default function ReportIssue() {
 
               {/* Step 4: Submission */}
               {currentStep === 4 && (
-                <div className="text-center py-12">
-                  <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg
-                      className="w-10 h-10 text-blue-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
+                <div className="space-y-6">
+                  <div className="border-b border-gray-200 pb-4">
+                    <h2 className="text-xl font-bold text-[#003865] mb-2">
+                      Final Review & Submission
+                    </h2>
+                    <p className="text-gray-600 text-sm">
+                      Review your information below and click Submit Report to finalize your submission
+                    </p>
                   </div>
-                  <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-                    Ready to Submit
-                  </h2>
-                  <p className="text-gray-600 max-w-md mx-auto mb-8">
-                    Your issue report is complete and ready for submission to
-                    municipal authorities.
-                  </p>
 
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-md mx-auto">
-                    <h3 className="font-semibold text-blue-900 mb-3">
-                      Submission Summary
+                  <div className="bg-blue-50 border-l-4 border-[#003865] p-5">
+                    <h3 className="font-semibold text-[#003865] mb-3 text-sm uppercase tracking-wide">
+                      Submission Information
                     </h3>
-                    <div className="text-sm text-blue-800 space-y-2">
-                      <p>• Issue will be processed within 48 hours</p>
-                      <p>• Reference number will be provided upon submission</p>
-                      <p>
-                        • Progress updates available through tracking system
-                      </p>
-                      {isAnonymous && <p>• Submitted as anonymous report</p>}
-                    </div>
+                    <ul className="text-sm text-gray-700 space-y-1.5 list-disc list-inside">
+                      <li>Issue will be processed within 48 hours of submission</li>
+                      <li>Reference number will be provided upon successful submission</li>
+                      <li>Progress updates available through the tracking system</li>
+                      {isAnonymous && <li>Your submission has been recorded anonymously</li>}
+                    </ul>
+                  </div>
+
+                  <div className="bg-gray-50 border border-gray-200 p-4 rounded">
+                    <p className="text-xs text-gray-600 text-center">
+                      By submitting this report, you acknowledge that the information provided is accurate to the best of your knowledge.
+                    </p>
                   </div>
                 </div>
               )}
 
               {/* Navigation Buttons */}
-              <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center pt-8 border-t-2 border-purple-100 mt-8 gap-4">
+              <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center pt-6 border-t border-gray-200 mt-6 gap-3">
                 <button
                   type="button"
                   onClick={prevStep}
                   disabled={currentStep === 1}
-                  className="group relative px-8 py-4 bg-white border-3 border-gray-300 text-gray-700 rounded-2xl hover:border-purple-400 hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-gray-300 disabled:hover:bg-white transition-all duration-300 font-bold text-lg flex items-center justify-center gap-3 shadow-lg hover:shadow-2xl disabled:shadow-sm transform hover:-translate-y-1 hover:scale-[1.02] disabled:transform-none overflow-hidden"
+                  className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white transition-colors text-sm font-semibold flex items-center justify-center gap-2"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <ArrowLeft className="w-6 h-6 relative z-10 group-hover:-translate-x-1 transition-transform duration-300" />
-                  <span className="relative z-10">Previous</span>
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Previous</span>
                 </button>
 
                 {currentStep < 4 ? (
                   <button
                     type="button"
                     onClick={nextStep}
-                    className="group relative px-10 py-4 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white rounded-2xl hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 transition-all duration-300 font-bold text-xl border-2 border-purple-400 shadow-2xl hover:shadow-3xl flex items-center justify-center gap-3 transform hover:-translate-y-1 hover:scale-[1.05] overflow-hidden"
+                    className="px-8 py-2.5 bg-[#003865] text-white rounded border border-[#003865] hover:bg-[#002D4F] transition-colors text-sm font-semibold flex items-center justify-center gap-2"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <span className="relative z-10 text-lg sm:text-xl">
-                      Continue
-                    </span>
-                    <ArrowRight className="w-6 h-6 relative z-10 group-hover:translate-x-1 transition-transform duration-300" />
+                    <span>Continue</span>
+                    <ArrowRight className="w-4 h-4" />
                   </button>
                 ) : (
                   <button
                     type="submit"
                     disabled={loading}
-                    className="group relative px-10 py-4 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 text-white rounded-2xl hover:from-green-600 hover:via-emerald-600 hover:to-teal-600 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-300 font-bold text-xl border-2 border-emerald-400 shadow-2xl hover:shadow-3xl flex items-center justify-center gap-3 transform hover:-translate-y-1 hover:scale-[1.05] disabled:transform-none disabled:shadow-sm overflow-hidden"
+                    className="px-8 py-2.5 bg-green-700 text-white rounded border border-green-700 hover:bg-green-800 disabled:bg-gray-400 disabled:border-gray-400 disabled:cursor-not-allowed transition-colors text-sm font-semibold flex items-center justify-center gap-2"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     {loading ? (
                       <>
-                        <Loader2 className="w-7 h-7 animate-spin relative z-10" />
-                        <span className="relative z-10 text-lg sm:text-xl">
-                          ✨ Submitting...
-                        </span>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Submitting...</span>
                       </>
                     ) : (
                       <>
-                        <CheckCircle className="w-7 h-7 relative z-10 group-hover:scale-110 transition-transform duration-300" />
-                        <span className="relative z-10 text-lg sm:text-xl">
-                          🚀 Submit Report
-                        </span>
+                        <CheckCircle className="w-4 h-4" />
+                        <span>Submit Report</span>
                       </>
                     )}
                   </button>
@@ -788,10 +971,12 @@ export default function ReportIssue() {
         </div>
 
         {/* Footer Note */}
-        <div className="text-center mt-8">
-          <p className="text-sm text-gray-500">
-            Municipal Corporation Public Service Portal • Secure Issue Reporting
-            System
+        <div className="text-center mt-6 pt-4 border-t border-gray-200">
+          <p className="text-xs text-gray-500">
+            Rupandehi District Administration Office • Public Grievance Management System
+          </p>
+          <p className="text-xs text-gray-400 mt-1">
+            नेपाल सरकार | Government of Nepal
           </p>
         </div>
       </div>

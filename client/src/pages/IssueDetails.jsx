@@ -185,11 +185,11 @@ export default function IssueDetails() {
 
   if (isLoading)
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
-        <div className="text-center bg-white/80 backdrop-blur-sm p-12 rounded-3xl shadow-2xl border-2 border-purple-200">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-200 border-t-purple-600 mx-auto"></div>
-          <p className="mt-6 text-gray-700 text-xl font-semibold">
-            ✨ Loading issue details...
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center bg-white border border-gray-200 p-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-[#003865] mx-auto"></div>
+          <p className="mt-6 text-gray-700 text-base font-semibold">
+            Loading issue details...
           </p>
         </div>
       </div>
@@ -197,15 +197,15 @@ export default function IssueDetails() {
 
   if (!issue)
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
-        <div className="text-center bg-white/90 backdrop-blur-sm p-12 rounded-3xl shadow-2xl border-2 border-red-200 max-w-md">
-          <div className="w-20 h-20 bg-gradient-to-br from-red-100 to-pink-100 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-            <AlertCircle className="w-10 h-10 text-red-600" />
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center bg-white border border-gray-200 p-12 max-w-md">
+          <div className="w-16 h-16 bg-red-100 rounded flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-8 h-8 text-red-600" />
           </div>
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent mb-3">
+          <h2 className="text-xl font-bold text-[#DC143C] mb-2">
             Issue Not Found
           </h2>
-          <p className="text-gray-600 text-lg">
+          <p className="text-gray-600 text-sm">
             The requested issue could not be found.
           </p>
         </div>
@@ -213,61 +213,76 @@ export default function IssueDetails() {
     );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12">
+    <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Official Government Header */}
+        <div className="bg-white border-l-4 border-[#003865] shadow-md mb-8 p-6">
+          <div className="flex items-start gap-4">
+            <div className="w-16 h-16 bg-[#003865] rounded flex items-center justify-center flex-shrink-0">
+              <AlertCircle className="w-8 h-8 text-white" />
+            </div>
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold text-[#003865] mb-1 capitalize">
+                {issue.category}
+              </h1>
+              <p className="text-gray-600 text-sm">
+                रुपन्देही जिल्ला | Rupandehi District Administration Office
+              </p>
+              <div className="mt-2">
+                <span
+                  className={`px-3 py-1.5 rounded text-xs font-semibold border flex items-center gap-1.5 ${status.color}`}
+                >
+                  {status.icon}
+                  {status.label}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Main Content Card */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border-2 border-purple-200 overflow-hidden">
+        <div className="bg-white border border-gray-200 shadow-sm overflow-hidden mb-6">
           {/* Issue Image */}
-          <div className="relative group">
+          <div className="relative">
             <img
               src={issue.image}
-              className="w-full h-96 object-cover transition-transform duration-300 group-hover:scale-105"
+              className="w-full h-96 object-cover"
               alt={issue.category}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <div className="absolute top-6 right-6">
-              <span
-                className={`px-5 py-3 rounded-xl text-sm font-bold border-2 shadow-xl backdrop-blur-sm flex items-center gap-2 ${status.color}`}
-              >
-                {status.icon}
-                {status.label}
-              </span>
-            </div>
           </div>
 
           {/* Issue Details */}
-          <div className="p-8 md:p-10">
-            {/* Header Section */}
-            <div className="border-b-2 border-purple-200 pb-8 mb-8">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent capitalize mb-4">
-                📋 {issue.category}
-              </h1>
-              <p className="text-gray-700 text-xl leading-relaxed font-medium">
+          <div className="p-6 md:p-8">
+            {/* Description Section */}
+            <div className="border-b border-gray-200 pb-6 mb-6">
+              <h2 className="text-sm font-semibold text-[#003865] uppercase tracking-wide mb-3 border-b border-gray-200 pb-2">
+                Description
+              </h2>
+              <p className="text-gray-700 text-sm leading-relaxed">
                 {issue.description}
               </p>
             </div>
 
             {/* Metadata Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div className="space-y-4">
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-6 shadow-lg">
-                  <label className="text-sm font-bold text-blue-600 uppercase tracking-wide mb-3 flex items-center gap-2">
-                    <MapPin className="w-4 h-4" />
+                <div className="bg-gray-50 border border-gray-200 rounded p-4">
+                  <label className="text-xs font-semibold text-[#003865] uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5" />
                     Location
                   </label>
-                  <p className="text-gray-900 font-bold text-lg flex items-center gap-2">
-                    <MapPin className="w-5 h-5 text-blue-600" />
+                  <p className="text-gray-900 font-semibold text-sm flex items-center gap-1.5">
+                    <MapPin className="w-4 h-4 text-[#003865]" />
                     {issue.locationName}
                   </p>
                 </div>
-                <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl p-6 shadow-lg">
-                  <label className="text-sm font-bold text-purple-600 uppercase tracking-wide mb-3">
-                    👤 Reported By
+                <div className="bg-gray-50 border border-gray-200 rounded p-4">
+                  <label className="text-xs font-semibold text-[#003865] uppercase tracking-wide mb-2">
+                    Reported By
                   </label>
-                  <p className="text-gray-900 font-bold text-lg mt-1">
+                  <p className="text-gray-900 font-semibold text-sm mt-1">
                     {issue.isAnonymous ? (
-                      <span className="flex items-center gap-2 text-gray-600">
-                        <span>🔒</span>
+                      <span className="flex items-center gap-1.5 text-gray-600">
                         Anonymous Reporter
                       </span>
                     ) : (
@@ -277,12 +292,12 @@ export default function IssueDetails() {
                 </div>
               </div>
               <div className="space-y-4">
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-6 shadow-lg">
-                  <label className="text-sm font-bold text-green-600 uppercase tracking-wide mb-3 flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
+                <div className="bg-gray-50 border border-gray-200 rounded p-4">
+                  <label className="text-xs font-semibold text-[#003865] uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5" />
                     Reported Date
                   </label>
-                  <p className="text-gray-900 font-bold text-lg mt-1">
+                  <p className="text-gray-900 font-semibold text-sm mt-1">
                     {new Date(issue.createdAt).toLocaleDateString("en-US", {
                       year: "numeric",
                       month: "long",
@@ -290,13 +305,13 @@ export default function IssueDetails() {
                     })}
                   </p>
                 </div>
-                <div className="bg-gradient-to-br from-orange-50 to-amber-50 border-2 border-orange-200 rounded-2xl p-6 shadow-lg">
-                  <label className="text-sm font-bold text-orange-600 uppercase tracking-wide mb-3 flex items-center gap-2">
-                    <Heart className="w-4 h-4" />
+                <div className="bg-gray-50 border border-gray-200 rounded p-4">
+                  <label className="text-xs font-semibold text-[#003865] uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                    <Heart className="w-3.5 h-3.5" />
                     Community Support
                   </label>
-                  <p className="text-gray-900 font-bold text-lg mt-1 flex items-center gap-2">
-                    <Heart className="w-5 h-5 text-red-500" />
+                  <p className="text-gray-900 font-semibold text-sm mt-1 flex items-center gap-1.5">
+                    <Heart className="w-4 h-4 text-red-600" />
                     {upvoteCount} {upvoteCount === 1 ? "person" : "people"}{" "}
                     support this issue
                   </p>
@@ -305,22 +320,22 @@ export default function IssueDetails() {
             </div>
 
             {/* Support Button */}
-            <div className="flex justify-center mb-8">
+            <div className="flex justify-center mb-6">
               <button
                 onClick={handleToggleUpvote}
                 disabled={loadingUpvote}
-                className={`flex items-center gap-3 px-8 py-3 rounded-lg font-semibold transition-all border shadow-sm ${
+                className={`flex items-center gap-2 px-6 py-2.5 rounded border font-semibold transition-colors text-sm ${
                   upvoted
-                    ? "bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
-                    : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
+                    ? "bg-red-50 text-red-700 border-red-300 hover:bg-red-100"
+                    : "bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100"
                 } ${
                   loadingUpvote
                     ? "opacity-50 cursor-not-allowed"
                     : "cursor-pointer"
                 }`}
               >
-                <Heart className={`w-5 h-5 ${upvoted ? "text-red-600 fill-red-600" : "text-gray-400"}`} />
-                <span className="font-bold">{upvoteCount}</span>
+                <Heart className={`w-4 h-4 ${upvoted ? "text-red-600 fill-red-600" : "text-gray-400"}`} />
+                <span className="font-semibold">{upvoteCount}</span>
                 <span>{upvoted ? "Supported" : "Support This Issue"}</span>
               </button>
             </div>
@@ -329,15 +344,15 @@ export default function IssueDetails() {
             {issue.status === "resolved" &&
               beforeAfter &&
               beforeAfter.length > 0 && (
-                <div className="mt-8 p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
-                  <div className="text-center mb-6">
-                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <span className="text-2xl">✅</span>
+                <div className="mt-6 p-6 bg-green-50 border border-green-200 rounded">
+                  <div className="text-center mb-5">
+                    <div className="w-12 h-12 bg-green-600 rounded flex items-center justify-center mx-auto mb-3">
+                      <CheckCircle2 className="w-6 h-6 text-white" />
                     </div>
-                    <h2 className="text-2xl font-bold text-green-900 mb-2">
+                    <h2 className="text-lg font-bold text-[#003865] mb-1">
                       Issue Resolved Successfully
                     </h2>
-                    <p className="text-green-700">
+                    <p className="text-green-700 text-sm">
                       This community issue has been successfully addressed.
                     </p>
                   </div>
@@ -390,8 +405,8 @@ export default function IssueDetails() {
                         {/* Completion Date */}
                         {photo.completedAt && (
                           <div className="text-center mt-4 pt-4 border-t border-gray-200">
-                            <p className="text-sm font-medium text-green-700">
-                              ✅ Work completed on{" "}
+                            <p className="text-xs font-medium text-green-700">
+                              Work completed on{" "}
                               {new Date(photo.completedAt).toLocaleDateString()}
                             </p>
                           </div>
@@ -412,18 +427,18 @@ export default function IssueDetails() {
 
             {/* Review Section */}
             {issue.status === "resolved" && isAuthenticated && (
-              <div className="mt-8 p-6 bg-blue-50 rounded-xl border border-blue-200">
-                <h2 className="text-xl font-bold text-blue-900 mb-4 flex items-center gap-2">
-                  <span>⭐</span>
+              <div className="mt-6 p-6 bg-blue-50 border border-blue-200 rounded">
+                <h2 className="text-lg font-bold text-[#003865] mb-3 flex items-center gap-2 border-b border-blue-200 pb-2 uppercase tracking-wide text-sm">
+                  <Star className="w-4 h-4" />
                   Share Your Feedback
                 </h2>
-                <p className="text-blue-700 text-sm mb-4">
+                <p className="text-gray-700 text-xs mb-4">
                   Your review helps us improve our services for the community.
                 </p>
 
                 {/* Rating Stars */}
                 <div className="mb-4">
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  <label className="block text-xs font-semibold text-gray-700 mb-2">
                     Rate the resolution quality
                   </label>
                   <div className="flex gap-1">
@@ -432,23 +447,23 @@ export default function IssueDetails() {
                         key={star}
                         type="button"
                         onClick={() => setReviewRating(star)}
-                        className={`text-3xl transition-transform hover:scale-110 ${
+                        className={`text-2xl transition-colors ${
                           reviewRating >= star
                             ? "text-yellow-500"
                             : "text-gray-300 hover:text-yellow-400"
                         }`}
                       >
-                        ⭐
+                        <Star className={reviewRating >= star ? "fill-yellow-500 text-yellow-500" : "text-gray-300"} />
                       </button>
                     ))}
                   </div>
                   {reviewRating > 0 && (
-                    <p className="text-sm text-gray-600 mt-2">
-                      {reviewRating === 5 && "Excellent service 🌟"}
-                      {reviewRating === 4 && "Very good service 👍"}
-                      {reviewRating === 3 && "Good service 😊"}
-                      {reviewRating === 2 && "Average service ⚠️"}
-                      {reviewRating === 1 && "Needs improvement 📝"}
+                    <p className="text-xs text-gray-600 mt-2">
+                      {reviewRating === 5 && "Excellent service"}
+                      {reviewRating === 4 && "Very good service"}
+                      {reviewRating === 3 && "Good service"}
+                      {reviewRating === 2 && "Average service"}
+                      {reviewRating === 1 && "Needs improvement"}
                     </p>
                   )}
                 </div>
@@ -470,7 +485,7 @@ export default function IssueDetails() {
                 <button
                   onClick={submitReview}
                   disabled={submittingReview || reviewRating < 1}
-                  className="px-6 py-3 bg-blue-700 text-white rounded-lg hover:bg-blue-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition font-semibold text-sm border border-blue-600 shadow-sm flex items-center gap-2"
+                  className="px-5 py-2.5 bg-[#003865] text-white rounded border border-[#003865] hover:bg-[#002D4F] disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-semibold text-sm flex items-center gap-2"
                 >
                   {submittingReview ? (
                     <>
@@ -492,34 +507,31 @@ export default function IssueDetails() {
 
             {/* Display Reviews */}
             {issue.status === "resolved" && reviews && reviews.length > 0 && (
-              <div className="mt-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <span>📊</span>
+              <div className="mt-6 border-t border-gray-200 pt-6">
+                <h2 className="text-lg font-bold text-[#003865] mb-4 flex items-center gap-2 uppercase tracking-wide text-sm border-b border-gray-200 pb-2">
                   Community Feedback ({reviews.length})
                 </h2>
-                <div className="grid gap-3">
+                <div className="space-y-3">
                   {reviews.map((review) => (
                     <div
                       key={review._id}
-                      className="bg-white p-4 rounded-lg border border-gray-200 hover:border-blue-200 transition-colors"
+                      className="bg-white p-4 rounded border border-gray-200 hover:border-[#003865] transition-colors"
                     >
-                      <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-start justify-between mb-2">
                         <div>
-                          <p className="font-semibold text-gray-900">
+                          <p className="font-semibold text-gray-900 text-sm">
                             {review.user?.fullName || "Community Member"}
                           </p>
-                          <div className="flex items-center gap-1 mt-1">
+                          <div className="flex items-center gap-0.5 mt-1">
                             {[1, 2, 3, 4, 5].map((star) => (
-                              <span
+                              <Star
                                 key={star}
-                                className={`text-sm ${
+                                className={`w-3.5 h-3.5 ${
                                   review.rating >= star
-                                    ? "text-yellow-500"
+                                    ? "text-yellow-500 fill-yellow-500"
                                     : "text-gray-300"
                                 }`}
-                              >
-                                ⭐
-                              </span>
+                              />
                             ))}
                           </div>
                         </div>
@@ -528,7 +540,7 @@ export default function IssueDetails() {
                         </p>
                       </div>
                       {review.comment && (
-                        <p className="text-gray-700 text-sm leading-relaxed">
+                        <p className="text-gray-700 text-xs leading-relaxed">
                           {review.comment}
                         </p>
                       )}
@@ -541,9 +553,9 @@ export default function IssueDetails() {
         </div>
 
         {/* Comments Section */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 mt-6 p-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-            <span>💬</span>
+        <div className="bg-white border border-gray-200 shadow-sm mt-6 p-6">
+          <h2 className="text-lg font-bold text-[#003865] mb-4 flex items-center gap-2 uppercase tracking-wide text-sm border-b border-gray-200 pb-2">
+            <MessageCircle className="w-4 h-4" />
             Community Discussion ({issue.comments?.length || 0})
           </h2>
 
@@ -566,7 +578,7 @@ export default function IssueDetails() {
               <button
                 onClick={addComment}
                 disabled={!comment.trim()}
-                className="bg-blue-700 text-white px-6 py-3 rounded-lg hover:bg-blue-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition font-semibold h-fit self-end border border-blue-600 shadow-sm flex items-center gap-2"
+                className="bg-[#003865] text-white px-5 py-2.5 rounded border border-[#003865] hover:bg-[#002D4F] disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-semibold h-fit self-end text-sm flex items-center gap-2"
               >
                 <MessageCircle className="w-4 h-4" />
                 Post
@@ -596,12 +608,12 @@ export default function IssueDetails() {
                 </div>
               ))
             ) : (
-              <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <span className="text-lg">💬</span>
+              <div className="text-center py-8 bg-gray-50 rounded border border-gray-200">
+                <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center mx-auto mb-3">
+                  <MessageCircle className="w-5 h-5 text-gray-400" />
                 </div>
-                <p className="text-gray-600 font-medium">No comments yet</p>
-                <p className="text-gray-500 text-sm mt-1">
+                <p className="text-gray-600 font-semibold text-sm">No comments yet</p>
+                <p className="text-gray-500 text-xs mt-1">
                   Be the first to start the discussion
                 </p>
               </div>

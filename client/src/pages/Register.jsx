@@ -49,47 +49,34 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-100 via-teal-100 to-blue-100 flex items-center justify-center px-4 relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute top-0 left-0 w-40 h-40 bg-green-600 opacity-20 rounded-full -translate-x-16 -translate-y-16 blur-3xl animate-pulse"></div>
-      <div className="absolute bottom-0 right-0 w-48 h-48 bg-blue-500 opacity-20 rounded-full translate-x-20 translate-y-20 blur-3xl animate-pulse"></div>
-      <div className="absolute top-1/2 left-1/2 w-56 h-56 bg-teal-500 opacity-15 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl animate-pulse"></div>
-
-      {/* Mandala pattern overlay */}
-      <div
-        className="absolute inset-0 opacity-5 bg-repeat bg-center"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 10 L60 40 L90 50 L60 60 L50 90 L40 60 L10 50 L40 40 Z' fill='%232565ec'/%3E%3C/svg%3E")`,
-          backgroundSize: "200px",
-        }}
-      ></div>
-
-      <div className="bg-white/90 backdrop-blur-xl p-10 rounded-3xl shadow-2xl w-full max-w-md relative z-10 border-3 border-green-200">
-        {/* Modern header icon */}
-        <div className="flex justify-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-br from-green-500 via-teal-500 to-blue-500 rounded-3xl flex items-center justify-center shadow-2xl transform hover:scale-110 transition-transform">
-            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center">
-              <div className="w-12 h-12 bg-gradient-to-br from-green-500 via-teal-500 to-blue-500 rounded-xl flex items-center justify-center">
-                <span className="text-white text-2xl font-bold">👤</span>
-              </div>
-            </div>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
+      <div className="bg-white border border-gray-200 shadow-sm p-8 w-full max-w-md">
+        {/* Official Government Header */}
+        <div className="flex justify-center mb-6">
+          <div className="w-16 h-16 bg-[#003865] rounded flex items-center justify-center">
+            <UserPlus className="w-8 h-8 text-white" />
           </div>
         </div>
 
-        <h1 className="text-4xl font-bold text-center bg-gradient-to-r from-green-600 via-teal-600 to-blue-600 bg-clip-text text-transparent mb-3 font-sans">
-          ✨ खाता दर्ता गर्नुहोस्
-        </h1>
-        <p className="text-center text-gray-700 mb-8 text-lg font-medium">
-          (Create Account in Sanket)
-        </p>
+        <div className="text-center mb-6 border-b border-gray-200 pb-4">
+          <h1 className="text-2xl font-bold text-[#003865] mb-1">
+            खाता दर्ता गर्नुहोस्
+          </h1>
+          <p className="text-sm text-gray-600">
+            रुपन्देही जिल्ला | Rupandehi District Administration Office
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            Create Account in Sanket
+          </p>
+        </div>
 
-        <form className="space-y-5" onSubmit={handleSubmit}>
+        <form className="space-y-4" onSubmit={handleSubmit}>
           {/* Full Name Field */}
           <div className="relative">
             <input
               placeholder="पूरा नाम"
               value={fullName}
-              className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-all duration-300 bg-white pl-12"
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded focus:ring-2 focus:ring-[#003865] focus:border-[#003865] transition-all bg-white pl-12 text-sm"
               onChange={(e) => setFullName(e.target.value)}
               required
               disabled={isLoading}
@@ -105,7 +92,7 @@ export default function Register() {
               type="email"
               placeholder="इमेल ठेगाना"
               value={email}
-              className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-all duration-300 bg-white pl-12"
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded focus:ring-2 focus:ring-[#003865] focus:border-[#003865] transition-all bg-white pl-12 text-sm"
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={isLoading}
@@ -121,7 +108,7 @@ export default function Register() {
               type="password"
               placeholder="पासवर्ड"
               value={password}
-              className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-all duration-300 bg-white pl-12"
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded focus:ring-2 focus:ring-[#003865] focus:border-[#003865] transition-all bg-white pl-12 text-sm"
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
@@ -138,7 +125,7 @@ export default function Register() {
               type="password"
               placeholder="पासवर्ड पुष्टि गर्नुहोस्"
               value={confirmPassword}
-              className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-all duration-300 bg-white pl-12"
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded focus:ring-2 focus:ring-[#003865] focus:border-[#003865] transition-all bg-white pl-12 text-sm"
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
               minLength={6}
@@ -152,7 +139,7 @@ export default function Register() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-gradient-to-r from-green-600 via-teal-600 to-blue-600 text-white py-4 rounded-xl hover:from-green-700 hover:via-teal-700 hover:to-blue-700 transition-all duration-300 font-bold text-xl shadow-2xl hover:shadow-3xl transform hover:-translate-y-1 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-3 border-2 border-teal-400"
+            className="w-full bg-[#003865] text-white py-3 rounded border border-[#003865] hover:bg-[#002D4F] transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
           >
             {isLoading ? (
               <>
@@ -187,29 +174,16 @@ export default function Register() {
           </button>
         </form>
 
-        <div className="mt-6 pt-6 border-t border-blue-200">
-          <p className="text-center text-gray-600">
+        <div className="mt-6 pt-5 border-t border-gray-200">
+          <p className="text-center text-sm text-gray-600">
             पहिले नै खाता छ?{" "}
             <Link
               to="/login"
-              className="text-blue-700 font-semibold hover:text-blue-800 underline transition-colors duration-300"
+              className="text-[#003865] font-semibold hover:text-[#002D4F] underline transition-colors"
             >
               लगइन गर्नुहोस्
             </Link>
           </p>
-        </div>
-
-        {/* Cultural pattern footer */}
-        <div className="mt-6 flex justify-center space-x-2">
-          {[...Array(8)].map((_, i) => (
-            <div
-              key={i}
-              className="w-2 h-2 bg-blue-500 rounded-full opacity-60"
-              style={{
-                animation: `pulse 2s infinite ${i * 0.3}s`,
-              }}
-            ></div>
-          ))}
         </div>
       </div>
     </div>
