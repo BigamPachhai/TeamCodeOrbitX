@@ -3,12 +3,14 @@ import api from "../api/axios";
 import { TrendingUp, AlertTriangle, CheckCircle, Clock, BarChart3 } from "lucide-react";
 
 export default function PredictionDashboard() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["predictions"],
     queryFn: async () => {
-      const { data } = await api.get("/predictions/predictions/bulk");
-      return data;
+      const response = await api.get("/predictions/bulk");
+      return response.data;
     },
+    retry: 2,
+    refetchOnWindowFocus: false,
   });
 
   if (isLoading) {

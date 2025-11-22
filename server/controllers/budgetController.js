@@ -1,6 +1,5 @@
 import Budget from "../models/Budget.js";
 import Issue from "../models/Issue.js";
-import { allocateBudgetAI } from "../utils/aiUtils.js";
 
 /**
  * Get budget summary

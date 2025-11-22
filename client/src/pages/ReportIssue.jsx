@@ -322,12 +322,28 @@ export default function ReportIssue() {
       fd.append("lng", lng);
       fd.append("isAnonymous", isAnonymous);
 
-      await api.post("/issues/create", fd);
-      success(
-        isAnonymous
-          ? "Issue report submitted successfully. Your submission has been recorded anonymously."
-          : "Issue report submitted successfully. Thank you for your contribution to community improvement."
-      );
+      const response = await api.post("/issues/create", fd);
+      const budgetInfo = response.data.budget;
+      
+      let successMessage = isAnonymous
+        ? "Issue report submitted successfully. Your submission has been recorded anonymously."
+        : "Issue report submitted successfully. Thank you for your contribution to community improvement.";
+      
+      // Add budget allocation info if available
+      if (budgetInfo) {
+        const budgetAmount = budgetInfo.allocatedAmount.toLocaleString();
+        const probability = (budgetInfo.probabilityFactor * 100).toFixed(0);
+        const aiIndicator = budgetInfo.aiGenerated ? "AI-analyzed" : "Estimated";
+        
+        successMessage += `\n\n💰 ${aiIndicator} Budget Allocation: रु ${budgetAmount}`;
+        successMessage += ` (${probability}% probability, ${budgetInfo.confidence}% confidence)`;
+        
+        if (budgetInfo.reasoning) {
+          successMessage += `\n📊 ${budgetInfo.reasoning}`;
+        }
+      }
+      
+      success(successMessage);
 
       // Reset form
       setImage(null);

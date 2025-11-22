@@ -982,6 +982,187 @@ Respond with JSON:
 /**
  * Detect potential duplicate and return details
  */
+/**
+ * AI-based Budget Allocation
+ * Analyzes image, description, category to calculate probability-based budget allocation
+ */
+export const allocateBudgetAI = async (imageUrl, description, category, locationName) => {
+  try {
+    // Base budget ranges by department/category (in Nepali Rupees)
+    const categoryBudgetRanges = {
+      "Road Management": { min: 50000, max: 500000, avg: 150000 },
+      "Waste": { min: 20000, max: 200000, avg: 75000 },
+      "Electricity": { min: 30000, max: 300000, avg: 100000 },
+      "Water": { min: 40000, max: 400000, avg: 125000 },
+      "Other": { min: 25000, max: 250000, avg: 85000 },
+    };
+
+    // Get base range for category
+    const budgetRange = categoryBudgetRanges[category] || categoryBudgetRanges["Other"];
+
+    // If AI is available, use it for detailed analysis
+    if (genAI && process.env.GEMINI_API_KEY && imageUrl) {
+      try {
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+        // Get priority and severity first
+        const priority = await suggestPriorityAI(imageUrl, description);
+        const severity = await assessSeverityAI(imageUrl, description);
+
+        // AI Analysis prompt
+        let prompt = `Analyze this community issue in Rupandehi, Nepal and estimate budget allocation:
+
+Category/Department: ${category || "Other"}
+Location: ${locationName || "Not specified"}
+Description: ${description || "Not provided"}
+Priority: ${priority || "medium"}
+Severity: ${severity.severity || "moderate"}
+
+Based on the image analysis, estimate:
+1. Complexity level (1-10): simple repair (1-3), moderate work (4-6), complex project (7-10)
+2. Estimated budget in Nepali Rupees (रु): between रु ${budgetRange.min.toLocaleString()} and रु ${budgetRange.max.toLocaleString()}
+3. Confidence level (0-100%): how confident you are in this estimate
+4. Probability factor (0.6-1.4): multiplier based on complexity (0.6-0.8 for simple, 0.8-1.0 for moderate, 1.0-1.4 for complex)
+
+Consider factors:
+- Scope of work needed
+- Material and labor costs in Nepal
+- Infrastructure complexity
+- Urgency and impact
+
+Respond with JSON:
+{
+  "complexity": number (1-10),
+  "estimatedBudget": number (in NPR),
+  "confidence": number (0-100),
+  "probabilityFactor": number (0.6-1.4),
+  "reasoning": "brief explanation of budget calculation"
+}`;
+
+        const content = [prompt];
+
+        if (imageUrl) {
+          try {
+            const imageResponse = await fetch(imageUrl);
+            const imageBuffer = await imageResponse.arrayBuffer();
+            const imageBase64 = Buffer.from(imageBuffer).toString("base64");
+            const mimeType = imageResponse.headers.get("content-type") || "image/jpeg";
+
+            content.push({
+              inlineData: {
+                data: imageBase64,
+                mimeType: mimeType,
+              },
+            });
+          } catch (imgError) {
+            console.warn("Could not fetch image for budget analysis:", imgError);
+          }
+        }
+
+        const result = await model.generateContent(content);
+        const response = await result.response;
+        const text = response.text().trim();
+
+        try {
+          const jsonMatch = text.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const analysis = JSON.parse(jsonMatch[0]);
+            
+            // Validate and calculate final budget
+            const complexity = Math.min(10, Math.max(1, analysis.complexity || 5));
+            const probabilityFactor = Math.min(1.4, Math.max(0.6, analysis.probabilityFactor || 1.0));
+            const confidence = Math.min(100, Math.max(0, analysis.confidence || 70));
+
+            // Calculate budget using probability-based approach
+            const baseBudget = budgetRange.avg;
+            const adjustedBudget = Math.round(baseBudget * probabilityFactor);
+
+            // Ensure budget is within range
+            const finalBudget = Math.min(
+              budgetRange.max,
+              Math.max(budgetRange.min, adjustedBudget)
+            );
+
+            return {
+              allocatedAmount: finalBudget,
+              estimatedCost: finalBudget,
+              probabilityFactor: parseFloat(probabilityFactor.toFixed(2)),
+              confidence: Math.round(confidence),
+              complexity: Math.round(complexity),
+              reasoning: analysis.reasoning || `AI-analyzed: ${priority} priority, ${severity.severity} severity`,
+              aiGenerated: true,
+            };
+          }
+        } catch (parseError) {
+          console.error("Error parsing AI budget analysis:", parseError);
+        }
+      } catch (aiError) {
+        console.error("Error in AI budget allocation:", aiError);
+        // Fall through to non-AI calculation
+      }
+    }
+
+    // Fallback: Non-AI probability-based calculation
+    // Use category, priority, and simple heuristics
+    let probabilityFactor = 0.85; // Default moderate probability
+
+    // Adjust based on description keywords
+    const descriptionLower = (description || "").toLowerCase();
+    const urgentKeywords = ["urgent", "emergency", "dangerous", "hazard", "critical", "immediate", "severe"];
+    const simpleKeywords = ["small", "minor", "simple", "quick", "easy", "cosmetic"];
+
+    if (urgentKeywords.some(keyword => descriptionLower.includes(keyword))) {
+      probabilityFactor = 1.15; // Higher probability for urgent issues
+    } else if (simpleKeywords.some(keyword => descriptionLower.includes(keyword))) {
+      probabilityFactor = 0.75; // Lower probability for simple issues
+    }
+
+    // Calculate budget using probability
+    const baseBudget = budgetRange.avg;
+    const allocatedAmount = Math.round(baseBudget * probabilityFactor);
+
+    // Ensure within range
+    const finalBudget = Math.min(
+      budgetRange.max,
+      Math.max(budgetRange.min, allocatedAmount)
+    );
+
+    return {
+      allocatedAmount: finalBudget,
+      estimatedCost: finalBudget,
+      probabilityFactor: parseFloat(probabilityFactor.toFixed(2)),
+      confidence: 65, // Moderate confidence for non-AI calculation
+      complexity: 5, // Default moderate complexity
+      reasoning: `Probability-based calculation for ${category}: ${(probabilityFactor * 100).toFixed(0)}% of average budget`,
+      aiGenerated: false,
+    };
+  } catch (error) {
+    console.error("Error in budget allocation:", error);
+    // Ultimate fallback
+    const budgetRange = {
+      "Road Management": { avg: 150000 },
+      "Waste": { avg: 75000 },
+      "Electricity": { avg: 100000 },
+      "Water": { avg: 125000 },
+      "Other": { avg: 85000 },
+    };
+    const range = budgetRange[category] || budgetRange["Other"];
+    
+    return {
+      allocatedAmount: range.avg,
+      estimatedCost: range.avg,
+      probabilityFactor: 1.0,
+      confidence: 50,
+      complexity: 5,
+      reasoning: "Default budget allocation",
+      aiGenerated: false,
+    };
+  }
+};
+
+/**
+ * Detect potential duplicate and return details
+ */
 export const detectDuplicateWithDetails = async (lat, lng, imageUrl, description) => {
   try {
     if (!process.env.GEMINI_API_KEY) {
@@ -1108,383 +1289,6 @@ export const detectDuplicateWithDetails = async (lat, lng, imageUrl, description
     return {
       isDuplicate: false,
       similarIssues: [],
-    };
-  }
-};
-
-/**
- * AI-powered budget allocation for issues
- * Analyzes issue details and historical data to automatically determine budget allocation
- */
-export const allocateBudgetAI = async (issue, historicalBudgets = []) => {
-  try {
-    if (!genAI || !process.env.GEMINI_API_KEY) {
-      // Fallback: use simple rule-based allocation
-      return {
-        allocatedAmount: 50000, // Default amount in NPR
-        estimatedCost: 45000,
-        confidence: 0.5,
-        reasoning: "AI not available. Using default budget allocation.",
-        factors: {
-          category: issue.category || "General",
-          priority: issue.severity || "medium",
-        },
-      };
-    }
-
-    const Issue = (await import("../models/Issue.js")).default;
-    const Budget = (await import("../models/Budget.js")).default;
-
-    // Get historical budget data for similar issues
-    const similarResolvedIssues = await Issue.find({
-      category: issue.category,
-      status: "resolved",
-    })
-      .limit(10)
-      .sort({ createdAt: -1 });
-
-    const historicalData = await Budget.find({
-      category: issue.category,
-      status: { $in: ["completed", "in-progress"] },
-    })
-      .limit(10)
-      .sort({ createdAt: -1 });
-
-    // Calculate average historical costs
-    const avgAllocated =
-      historicalData.length > 0
-        ? historicalData.reduce((sum, b) => sum + (b.allocatedAmount || 0), 0) /
-          historicalData.length
-        : 0;
-
-    const avgSpent =
-      historicalData.length > 0
-        ? historicalData.reduce((sum, b) => sum + (b.spentAmount || 0), 0) /
-          historicalData.length
-        : 0;
-
-    const avgResolutionTime =
-      similarResolvedIssues.length > 0
-        ? similarResolvedIssues.reduce((sum, issue) => {
-            const time =
-              (new Date(issue.updatedAt) - new Date(issue.createdAt)) /
-              (1000 * 60 * 60 * 24); // Days
-            return sum + time;
-          }, 0) / similarResolvedIssues.length
-        : 7;
-
-    // Use gemini-pro-vision if image is available, otherwise gemini-pro
-    const modelName = issue.image ? "gemini-pro-vision" : "gemini-pro";
-    const model = genAI.getGenerativeModel({ model: modelName });
-
-    // Prepare context for AI
-    const description = issue.description || issue.aiDescription || "Not provided";
-    const category = issue.category || "General";
-    const priority = issue.severity || "medium";
-    const location = issue.locationName || issue.municipality || "Not specified";
-    const ward = issue.ward || "Not specified";
-    
-    // Calculate additional statistics
-    const minAllocated = historicalData.length > 0 
-      ? Math.min(...historicalData.map(b => b.allocatedAmount || 0))
-      : 0;
-    const maxAllocated = historicalData.length > 0 
-      ? Math.max(...historicalData.map(b => b.allocatedAmount || 0))
-      : 0;
-    const medianAllocated = historicalData.length > 0
-      ? historicalData.sort((a, b) => (a.allocatedAmount || 0) - (b.allocatedAmount || 0))[
-          Math.floor(historicalData.length / 2)
-        ]?.allocatedAmount || 0
-      : 0;
-
-    console.log(`🤖 AI Budget Analysis for Issue:`);
-    console.log(`   Category: ${category}`);
-    console.log(`   Priority: ${priority}`);
-    console.log(`   Location: ${location} (Ward: ${ward})`);
-    console.log(`   Historical Data: ${historicalData.length} similar budgets`);
-    console.log(`   Historical Avg: NPR ${avgAllocated.toFixed(0)}, Median: NPR ${medianAllocated.toFixed(0)}`);
-
-    const prompt = `You are an expert budget analyst for municipal infrastructure management in Nepal, specifically for Rupandehi District. Your task is to analyze this issue and determine an accurate budget allocation in Nepalese Rupees (NPR).
-
-=== ISSUE DETAILS ===
-Category: ${category}
-Priority/Severity: ${priority}
-Location: ${location}
-Ward: ${ward}
-Description: ${description.substring(0, 800)}
-${issue.image ? "📷 Image: Available - Analyze the image to assess the actual damage/issue severity visually" : ""}
-
-=== HISTORICAL BUDGET DATA (${category} Category) ===
-- Number of similar cases analyzed: ${historicalData.length}
-- Average allocated budget: NPR ${avgAllocated.toFixed(0)}
-- Average actual spent: NPR ${avgSpent.toFixed(0)}
-- Minimum allocated: NPR ${minAllocated.toFixed(0)}
-- Maximum allocated: NPR ${maxAllocated.toFixed(0)}
-- Median allocated: NPR ${medianAllocated.toFixed(0)}
-- Average resolution time: ${avgResolutionTime.toFixed(1)} days
-- Budget efficiency: ${avgAllocated > 0 ? ((avgSpent / avgAllocated) * 100).toFixed(1) : 0}% (spent vs allocated)
-
-=== NEPAL MUNICIPAL BUDGET GUIDELINES ===
-Based on typical costs in Nepal (Rupandehi District context):
-
-SMALL ISSUES (Minor repairs, cosmetic fixes):
-- Examples: Small potholes, minor leaks, single broken light, small garbage pile
-- Budget Range: NPR 5,000 - 25,000
-- Typical: NPR 15,000
-
-MEDIUM ISSUES (Moderate infrastructure work):
-- Examples: Medium road repairs, pipe replacements, multiple lights, waste collection setup
-- Budget Range: NPR 25,000 - 100,000
-- Typical: NPR 60,000
-
-LARGE ISSUES (Major repairs, significant infrastructure):
-- Examples: Major road reconstruction, large pipe network, electrical system upgrade, major cleanup
-- Budget Range: NPR 100,000 - 500,000
-- Typical: NPR 250,000
-
-CRITICAL ISSUES (Safety hazards, major infrastructure):
-- Examples: Dangerous road conditions, major water supply failure, electrical hazards, large-scale waste management
-- Budget Range: NPR 500,000 - 2,000,000+
-- Typical: NPR 1,000,000
-
-=== COST BREAKDOWN CONSIDERATIONS ===
-1. MATERIAL COSTS (Nepal market rates):
-   - Cement: NPR 800-1000 per bag
-   - Steel/Rebar: NPR 80-100 per kg
-   - Sand/Gravel: NPR 1,500-2,500 per cubic meter
-   - Pipes (water): NPR 200-500 per meter
-   - Electrical materials: Varies by type
-   - Labor: NPR 800-1,500 per day per worker
-
-2. LABOR COSTS:
-   - Skilled worker: NPR 1,200-2,000/day
-   - Unskilled worker: NPR 800-1,200/day
-   - Supervisor: NPR 2,000-3,000/day
-   - Typical team: 2-5 workers for 1-7 days
-
-3. EQUIPMENT & MACHINERY:
-   - Excavator rental: NPR 8,000-15,000/day
-   - Truck/Transport: NPR 3,000-6,000/day
-   - Specialized equipment: As needed
-
-4. CONTINGENCY & OVERHEAD:
-   - Standard contingency: 10-15% of estimated cost
-   - Administrative overhead: 5-8%
-   - Total buffer: 15-20% above base estimate
-
-=== ANALYSIS REQUIREMENTS ===
-Carefully analyze:
-1. SEVERITY ASSESSMENT: How critical is this issue? (critical/high/moderate/low)
-   - Safety hazards = critical/high
-   - Service disruption = high/moderate
-   - Cosmetic/minor = low
-
-2. COMPLEXITY ANALYSIS: How complex is the work? (simple/moderate/complex/very-complex)
-   - Simple: Single point fix, minimal materials
-   - Moderate: Multi-step process, standard materials
-   - Complex: Requires planning, multiple trades, coordination
-   - Very Complex: Major infrastructure, engineering required
-
-3. SCOPE ESTIMATION: Based on description${issue.image ? " and image analysis" : ""}, estimate:
-   - Area/Size affected
-   - Materials needed
-   - Labor required
-   - Time to complete
-
-4. URGENCY FACTOR: How urgent is resolution? (immediate/high/medium/low)
-   - Immediate: Safety hazard, complete service failure
-   - High: Significant impact, many affected
-   - Medium: Moderate impact
-   - Low: Minor inconvenience
-
-5. HISTORICAL COMPARISON: Compare with similar past issues
-   - Use historical average as baseline
-   - Adjust based on current issue specifics
-   - Consider if current issue is more/less severe
-
-6. LOCATION FACTORS:
-   - Urban areas: Higher labor/material costs
-   - Rural areas: May need transport, different rates
-   - Accessibility: Hard-to-reach areas cost more
-
-=== RESPONSE FORMAT ===
-Respond with ONLY valid JSON (no markdown, no code blocks, no explanations outside JSON):
-
-{
-  "allocatedAmount": <number in NPR, total budget including contingency>,
-  "estimatedCost": <number in NPR, expected actual cost before contingency>,
-  "confidence": <0.0-1.0, confidence level in this allocation>,
-  "reasoning": "<detailed explanation of your analysis, including: why this amount, what factors influenced it, how it compares to historical data, what the budget covers>",
-  "breakdown": {
-    "materials": <estimated material cost in NPR>,
-    "labor": <estimated labor cost in NPR>,
-    "equipment": <estimated equipment/transport cost in NPR>,
-    "contingency": <contingency buffer in NPR>
-  },
-  "factors": {
-    "severity": "critical|high|moderate|low",
-    "complexity": "simple|moderate|complex|very-complex",
-    "urgency": "immediate|high|medium|low",
-    "estimatedTime": <number of days to resolve>,
-    "teamSize": <estimated number of workers needed>,
-    "scope": "<brief description of work scope>"
-  }
-}
-
-IMPORTANT: 
-- allocatedAmount should be 15-20% higher than estimatedCost (includes contingency)
-- Be realistic based on Nepal market rates
-- If image is provided, use visual analysis to assess actual damage
-- Provide detailed reasoning explaining your calculation`;
-
-    const content = [prompt];
-
-    // Include image if available for visual analysis
-    if (issue.image) {
-      try {
-        const imageResponse = await fetch(issue.image);
-        const imageBuffer = await imageResponse.arrayBuffer();
-        const imageBase64 = Buffer.from(imageBuffer).toString("base64");
-        const mimeType = imageResponse.headers.get("content-type") || "image/jpeg";
-
-        content.push({
-          inlineData: {
-            data: imageBase64,
-            mimeType: mimeType,
-          },
-        });
-      } catch (imageError) {
-        console.error("Error loading image for budget allocation:", imageError);
-      }
-    }
-
-    console.log(`🤖 Sending request to Gemini AI (model: ${modelName})...`);
-    const result = await model.generateContent(content);
-    const response = await result.response;
-    const text = response.text().trim();
-
-    console.log(`🤖 AI Raw Response (first 500 chars):`, text.substring(0, 500));
-
-    // Parse JSON response
-    try {
-      // Try to extract JSON from response (handle markdown code blocks or plain JSON)
-      let jsonText = text;
-      
-      // Remove markdown code blocks if present
-      jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-      
-      // Find JSON object
-      const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const allocation = JSON.parse(jsonMatch[0]);
-
-        console.log(`🤖 Parsed AI Allocation:`, {
-          allocatedAmount: allocation.allocatedAmount,
-          estimatedCost: allocation.estimatedCost,
-          confidence: allocation.confidence,
-          breakdown: allocation.breakdown,
-          factors: allocation.factors
-        });
-
-        // Validate and sanitize amounts
-        const allocatedAmount = Math.max(1000, Math.min(5000000, allocation.allocatedAmount || 50000));
-        const estimatedCost = Math.max(1000, Math.min(5000000, allocation.estimatedCost || allocatedAmount * 0.85));
-
-        // Ensure allocatedAmount includes contingency (should be >= estimatedCost)
-        const finalAllocated = Math.max(allocatedAmount, estimatedCost * 1.1);
-
-        const result = {
-          allocatedAmount: Math.round(finalAllocated),
-          estimatedCost: Math.round(estimatedCost),
-          confidence: Math.min(1, Math.max(0, allocation.confidence || 0.7)),
-          reasoning: allocation.reasoning || "AI-allocated based on issue analysis",
-          breakdown: allocation.breakdown || {
-            materials: Math.round(estimatedCost * 0.4),
-            labor: Math.round(estimatedCost * 0.4),
-            equipment: Math.round(estimatedCost * 0.15),
-            contingency: Math.round(finalAllocated - estimatedCost),
-          },
-          factors: allocation.factors || {
-            severity: priority,
-            complexity: "moderate",
-            urgency: priority === "critical" ? "immediate" : "medium",
-            estimatedTime: avgResolutionTime,
-            teamSize: 2,
-            scope: "Standard issue resolution",
-          },
-        };
-
-        console.log(`✅ AI Budget Allocation Result:`);
-        console.log(`   Allocated: NPR ${result.allocatedAmount.toLocaleString()}`);
-        console.log(`   Estimated Cost: NPR ${result.estimatedCost.toLocaleString()}`);
-        console.log(`   Confidence: ${(result.confidence * 100).toFixed(1)}%`);
-        console.log(`   Reasoning: ${result.reasoning.substring(0, 200)}...`);
-        console.log(`   Breakdown:`, result.breakdown);
-        console.log(`   Factors:`, result.factors);
-
-        return result;
-      } else {
-        console.warn("⚠️  No JSON found in AI response, using fallback calculation");
-      }
-    } catch (parseError) {
-      console.error("❌ Error parsing AI budget allocation:", parseError);
-      console.error("Response text:", text.substring(0, 500));
-    }
-
-    // Fallback calculation based on priority and category
-    let baseAmount = 50000; // Base amount in NPR
-
-    // Adjust based on priority
-    const priorityMultiplier = {
-      critical: 3.0,
-      high: 2.0,
-      moderate: 1.0,
-      low: 0.6,
-    };
-    baseAmount *= priorityMultiplier[priority] || 1.0;
-
-    // Adjust based on category complexity
-    const categoryMultiplier = {
-      "Road Management": 1.5,
-      "Water Supply": 1.3,
-      "Electricity": 1.2,
-      "Waste Management": 0.9,
-      Other: 1.0,
-    };
-    baseAmount *= categoryMultiplier[category] || 1.0;
-
-    // Use historical average if available
-    if (avgAllocated > 0) {
-      baseAmount = (baseAmount + avgAllocated) / 2;
-    }
-
-    return {
-      allocatedAmount: Math.round(baseAmount),
-      estimatedCost: Math.round(baseAmount * 0.9),
-      confidence: historicalData.length > 0 ? 0.7 : 0.5,
-      reasoning: `Based on priority (${priority}), category (${category}), and ${historicalData.length} historical cases`,
-      factors: {
-        severity: priority,
-        complexity: "moderate",
-        urgency: priority === "critical" ? "immediate" : "medium",
-        estimatedTime: Math.round(avgResolutionTime),
-      },
-    };
-  } catch (error) {
-    console.error("Error allocating budget with AI:", error);
-    
-    // Safe fallback
-    return {
-      allocatedAmount: 50000,
-      estimatedCost: 45000,
-      confidence: 0.3,
-      reasoning: "Error in AI allocation. Using default budget. Please review manually.",
-      factors: {
-        severity: issue.severity || "medium",
-        complexity: "unknown",
-        urgency: "medium",
-        estimatedTime: 7,
-      },
     };
   }
 };

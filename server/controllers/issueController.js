@@ -6,7 +6,9 @@ import {
   analyzeImageCategory,
   generateDescriptionAI,
   detectDuplicateIssue,
+  allocateBudgetAI,
 } from "../utils/aiUtils.js";
+import Budget from "../models/Budget.js";
 import { generateIssueQRCode } from "../utils/qrGenerator.js";
 import { generateIssuePDF } from "../utils/pdfGenerator.js";
 import { getTemplate, getAllTemplates } from "../utils/issueTemplates.js";
@@ -100,9 +102,65 @@ export const createIssue = async (req, res) => {
       $inc: { points: 10 },
     });
 
+    // AI-Based Budget Allocation
+    // Automatically allocate budget based on photo, department, and category
+    let budgetAllocation = null;
+    try {
+      // Map category to department
+      const categoryToDepartment = {
+        "Road Management": "Road Department",
+        "Waste": "Waste Management Department",
+        "Electricity": "Electricity Department",
+        "Water": "Water Supply Department",
+        "Other": "General Administration"
+      };
+      const department = categoryToDepartment[category] || "General Administration";
+
+      console.log(`🤖 AI Budget Allocation: Analyzing issue ${issue._id} for ${department}...`);
+      
+      // Calculate budget allocation using AI
+      budgetAllocation = await allocateBudgetAI(
+        uploadedImage,
+        description,
+        category,
+        locationName
+      );
+
+      // Create budget entry
+      const budgetYear = new Date().getFullYear().toString();
+      const budget = await Budget.create({
+        issue: issue._id,
+        department: department,
+        municipality: req.body.municipality || "",
+        category: category,
+        allocatedAmount: budgetAllocation.allocatedAmount,
+        estimatedCost: budgetAllocation.estimatedCost,
+        budgetYear: budgetYear,
+        status: "allocated",
+        notes: `AI-generated budget: ${budgetAllocation.reasoning} (${budgetAllocation.confidence}% confidence, Probability: ${(budgetAllocation.probabilityFactor * 100).toFixed(0)}%)`,
+      });
+
+      console.log(`💰 Budget allocated: रु ${budgetAllocation.allocatedAmount.toLocaleString()} (Probability: ${(budgetAllocation.probabilityFactor * 100).toFixed(0)}%)`);
+
+      // Attach budget info to response
+      issue.budget = budget;
+      issue.budgetAllocation = budgetAllocation;
+    } catch (budgetError) {
+      console.error("Error allocating budget:", budgetError);
+      // Don't fail issue creation if budget allocation fails
+    }
+
     return res.json({
       message: "Issue created successfully",
       issue,
+      budget: budgetAllocation ? {
+        allocatedAmount: budgetAllocation.allocatedAmount,
+        estimatedCost: budgetAllocation.estimatedCost,
+        probabilityFactor: budgetAllocation.probabilityFactor,
+        confidence: budgetAllocation.confidence,
+        reasoning: budgetAllocation.reasoning,
+        aiGenerated: budgetAllocation.aiGenerated,
+      } : null,
     });
   } catch (error) {
     console.error("Error creating issue:", error);

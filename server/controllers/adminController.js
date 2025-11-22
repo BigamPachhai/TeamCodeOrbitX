@@ -133,6 +133,38 @@ export const updateIssueStatus = async (req, res) => {
       }
     }
 
+    // Update budget when issue is resolved
+    // Move allocated amount to spent amount
+    if (status === "resolved" && oldStatus !== "resolved") {
+      try {
+        const Budget = (await import("../models/Budget.js")).default;
+        const budget = await Budget.findOne({ issue: id });
+        
+        if (budget) {
+          // Update spent amount to match allocated amount
+          budget.spentAmount = budget.allocatedAmount;
+          budget.status = "completed";
+          
+          // Update notes to reflect completion
+          const completionNote = `\n\n✅ PROJECT COMPLETED: ${new Date().toLocaleString()}\n`;
+          const completionNote2 = `Allocated budget (रु ${budget.allocatedAmount.toLocaleString()}) moved to spent amount.\n`;
+          budget.notes = (budget.notes || "") + completionNote + completionNote2;
+          
+          await budget.save();
+          
+          console.log(`💰 Budget updated for issue ${id}:`);
+          console.log(`   Allocated: रु ${budget.allocatedAmount.toLocaleString()}`);
+          console.log(`   Spent: रु ${budget.spentAmount.toLocaleString()}`);
+          console.log(`   Status: ${budget.status}`);
+        } else {
+          console.log(`⚠️  No budget found for resolved issue ${id}`);
+        }
+      } catch (budgetError) {
+        // Don't fail the status update if budget update fails
+        console.error("Error updating budget on resolution:", budgetError);
+      }
+    }
+
     // Record status change in history
     await IssueHistory.create({
       issue: id,
@@ -242,6 +274,33 @@ export const uploadAfterPhoto = async (req, res) => {
     // Update issue status to resolved if not already
     if (issue.status !== "resolved") {
       await Issue.findByIdAndUpdate(id, { status: "resolved" });
+      
+      // Update budget when issue is resolved
+      // Move allocated amount to spent amount
+      try {
+        const Budget = (await import("../models/Budget.js")).default;
+        const budget = await Budget.findOne({ issue: id });
+        
+        if (budget) {
+          // Update spent amount to match allocated amount
+          budget.spentAmount = budget.allocatedAmount;
+          budget.status = "completed";
+          
+          // Update notes to reflect completion
+          const completionNote = `\n\n✅ PROJECT COMPLETED: ${new Date().toLocaleString()}\n`;
+          const completionNote2 = `Allocated budget (रु ${budget.allocatedAmount.toLocaleString()}) moved to spent amount.\n`;
+          budget.notes = (budget.notes || "") + completionNote + completionNote2;
+          
+          await budget.save();
+          
+          console.log(`💰 Budget updated for resolved issue ${id}:`);
+          console.log(`   Allocated: रु ${budget.allocatedAmount.toLocaleString()}`);
+          console.log(`   Spent: रु ${budget.spentAmount.toLocaleString()}`);
+          console.log(`   Status: ${budget.status}`);
+        }
+      } catch (budgetError) {
+        console.error("Error updating budget on resolution:", budgetError);
+      }
     }
 
     res.json({
@@ -363,6 +422,33 @@ export const uploadCompletionPhotos = async (req, res) => {
     if (!wasResolved) {
       issue.status = "resolved";
       await issue.save();
+
+      // Update budget when issue is resolved
+      // Move allocated amount to spent amount
+      try {
+        const Budget = (await import("../models/Budget.js")).default;
+        const budget = await Budget.findOne({ issue: id });
+        
+        if (budget) {
+          // Update spent amount to match allocated amount
+          budget.spentAmount = budget.allocatedAmount;
+          budget.status = "completed";
+          
+          // Update notes to reflect completion
+          const completionNote = `\n\n✅ PROJECT COMPLETED: ${new Date().toLocaleString()}\n`;
+          const completionNote2 = `Allocated budget (रु ${budget.allocatedAmount.toLocaleString()}) moved to spent amount.\n`;
+          budget.notes = (budget.notes || "") + completionNote + completionNote2;
+          
+          await budget.save();
+          
+          console.log(`💰 Budget updated for completed issue ${id}:`);
+          console.log(`   Allocated: रु ${budget.allocatedAmount.toLocaleString()}`);
+          console.log(`   Spent: रु ${budget.spentAmount.toLocaleString()}`);
+          console.log(`   Status: ${budget.status}`);
+        }
+      } catch (budgetError) {
+        console.error("Error updating budget on completion:", budgetError);
+      }
 
       // Award 5 bonus points when issue is resolved
       if (issue.user) {
