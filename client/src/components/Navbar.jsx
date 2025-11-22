@@ -17,7 +17,7 @@ import {
   Award,
   Shield,
   DollarSign,
-  Brain,
+  Layers,
 } from "lucide-react";
 
 export default function Navbar() {
@@ -109,24 +109,17 @@ export default function Navbar() {
                 </Link>
                 <Link
                   className="px-4 py-2.5 hover:bg-white/10 transition-colors text-sm font-medium rounded"
-                  to="/heatmap"
-                >
-                  <MapPin className="w-4 h-4 inline mr-2" />
-                  {t("common.heatmap")}
-                </Link>
-                <Link
-                  className="px-4 py-2.5 hover:bg-white/10 transition-colors text-sm font-medium rounded"
-                  to="/predictions"
-                >
-                  <Brain className="w-4 h-4 inline mr-2" />
-                  Predictions
-                </Link>
-                <Link
-                  className="px-4 py-2.5 hover:bg-white/10 transition-colors text-sm font-medium rounded"
                   to="/budget"
                 >
                   <DollarSign className="w-4 h-4 inline mr-2" />
                   Budget
+                </Link>
+                <Link
+                  className="px-4 py-2.5 hover:bg-white/10 transition-colors text-sm font-medium rounded"
+                  to="/heatmap"
+                >
+                  <Layers className="w-4 h-4 inline mr-2" />
+                  {t("common.heatmap")}
                 </Link>
                 <Link
                   className="px-4 py-2.5 hover:bg-white/10 transition-colors text-sm font-medium rounded"
