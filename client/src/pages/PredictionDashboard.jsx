@@ -6,11 +6,26 @@ export default function PredictionDashboard() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["predictions"],
     queryFn: async () => {
-      const response = await api.get("/predictions/bulk");
-      return response.data;
+      try {
+        const response = await api.get("/predictions/bulk");
+        console.log("Predictions API response:", response.data);
+        // Handle response structure
+        if (response.data && response.data.predictions) {
+          return response.data;
+        } else if (response.data && Array.isArray(response.data)) {
+          return { predictions: response.data, count: response.data.length };
+        } else {
+          console.warn("Unexpected predictions response format:", response.data);
+          return { predictions: [], count: 0 };
+        }
+      } catch (err) {
+        console.error("Error fetching predictions:", err);
+        throw err; // Let react-query handle the error
+      }
     },
     retry: 2,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
+    refetchInterval: 30000, // Refetch every 30 seconds to get new predictions
   });
 
   if (isLoading) {
@@ -30,7 +45,17 @@ export default function PredictionDashboard() {
     );
   }
 
-  const predictions = data?.predictions || [];
+  const predictions = data?.predictions || data || [];
+  
+  // Log for debugging
+  if (error) {
+    console.error("Prediction fetch error:", error);
+  }
+  
+  if (data) {
+    console.log("Predictions data received:", data);
+    console.log("Predictions array:", predictions);
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -52,12 +77,20 @@ export default function PredictionDashboard() {
           </div>
         </div>
 
-        {predictions.length === 0 ? (
+        {error ? (
+          <div className="bg-white border border-red-200 rounded-lg shadow-sm p-12 text-center">
+            <AlertTriangle className="w-16 h-16 text-red-300 mx-auto mb-4" />
+            <p className="text-red-600 font-semibold">Error loading predictions</p>
+            <p className="text-sm text-red-500 mt-2">
+              {error.message || "Failed to fetch predictions. Please try again."}
+            </p>
+          </div>
+        ) : predictions.length === 0 ? (
           <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-12 text-center">
             <BarChart3 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-600 font-semibold">No predictions available yet</p>
             <p className="text-sm text-gray-500 mt-2">
-              Predictions will appear as more issues are reported
+              Predictions are generated based on reported issues. Report more issues to see predictions.
             </p>
           </div>
         ) : (
@@ -114,10 +147,15 @@ export default function PredictionDashboard() {
                   <div key={index} className="p-6 hover:bg-gray-50 transition-colors">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
+                        <div className="flex items-center gap-3 mb-2 flex-wrap">
                           <h3 className="text-base font-bold text-gray-900">
-                            {prediction.predictedIssues?.[0]?.location || "Location"}
+                            {prediction.location || prediction.predictedIssues?.[0]?.location || "Location"}
                           </h3>
+                          {prediction.category && (
+                            <span className="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                              {prediction.category}
+                            </span>
+                          )}
                           <span
                             className={`px-3 py-1 rounded text-xs font-semibold border ${
                               prediction.likelihood >= 70
@@ -127,20 +165,30 @@ export default function PredictionDashboard() {
                                 : "bg-green-100 text-green-800 border-green-300"
                             }`}
                           >
-                            {prediction.likelihood}% Risk
+                            {Math.round(prediction.likelihood || 0)}% Risk
                           </span>
                         </div>
 
                         <p className="text-sm text-gray-600 mb-3">
-                          {prediction.recommendation}
+                          {prediction.recommendation || "Analysis based on historical patterns"}
                         </p>
 
-                        <div className="flex items-center gap-4 text-xs text-gray-500">
-                          <span>Confidence: {prediction.confidence || "medium"}</span>
-                          <span>•</span>
-                          <span>
-                            Based on {prediction.predictedIssues?.length || 0} similar issues
-                          </span>
+                        <div className="flex items-center gap-4 text-xs text-gray-500 flex-wrap">
+                          <span className="capitalize">Confidence: {prediction.confidence || "medium"}</span>
+                          {prediction.predictedIssues?.length > 0 && (
+                            <>
+                              <span>•</span>
+                              <span>
+                                Based on {prediction.predictedIssues?.length || 0} similar issue{prediction.predictedIssues?.length !== 1 ? 's' : ''}
+                              </span>
+                            </>
+                          )}
+                          {prediction.patterns?.frequency && (
+                            <>
+                              <span>•</span>
+                              <span>Total issues: {prediction.patterns.frequency}</span>
+                            </>
+                          )}
                         </div>
                       </div>
 

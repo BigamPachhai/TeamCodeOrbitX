@@ -4,7 +4,7 @@ import { getIssuePrediction, getBulkIssuePredictions } from "../controllers/pred
 const router = express.Router();
 
 router.get("/predict", getIssuePrediction);
-router.get("/predictions/bulk", getBulkIssuePredictions);
+router.get("/bulk", getBulkIssuePredictions);
 
 export default router;
 
