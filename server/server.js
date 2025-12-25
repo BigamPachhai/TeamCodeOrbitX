@@ -60,7 +60,7 @@ app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Connect to database (cached connection for serverless)
-connectDB().catch(err => console.error("Initial DB connection failed:", err));
+connectDB().catch((err) => console.error("Initial DB connection failed:", err));
 
 // Health check endpoint
 app.get("/", (req, res) => {
