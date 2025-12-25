@@ -30,11 +30,18 @@ export const createIssue = async (req, res) => {
       });
     }
 
-    // Upload image to Cloudinary
+    // Upload image to Cloudinary (serverless compatible - use buffer)
     let uploadedImage = null;
     if (req.file) {
-      const upload = await cloudinary.uploader.upload(req.file.path, {
-        folder: "issues",
+      const upload = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: "issues" },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        uploadStream.end(req.file.buffer);
       });
       uploadedImage = upload.secure_url;
     }
@@ -295,24 +302,13 @@ export const exportIssuePDF = async (req, res) => {
     }
 
     const baseUrl = process.env.FRONTEND_URL || req.protocol + "://" + req.get("host");
-    const pdfPath = await generateIssuePDF(issue, baseUrl);
+    const pdfBuffer = await generateIssuePDF(issue, baseUrl);
 
-    res.download(pdfPath, `issue_${id}.pdf`, (err) => {
-      if (err) {
-        console.error("Error downloading PDF:", err);
-      }
-      // Clean up file after download
-      setTimeout(() => {
-        try {
-          const fs = require("fs");
-          if (fs.existsSync(pdfPath)) {
-            fs.unlinkSync(pdfPath);
-          }
-        } catch (cleanupError) {
-          console.error("Error cleaning up PDF:", cleanupError);
-        }
-      }, 5000);
-    });
+    // Send PDF buffer directly (serverless compatible)
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="issue_${id}.pdf"`);
+    res.setHeader("Content-Length", pdfBuffer.length);
+    res.send(pdfBuffer);
   } catch (error) {
     console.error("Error generating PDF:", error);
     res.status(500).json({ message: "Error generating PDF", error: error.message });

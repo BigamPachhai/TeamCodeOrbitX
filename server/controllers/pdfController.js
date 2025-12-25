@@ -7,7 +7,11 @@ export const generatePDF = async (req, res) => {
   const issue = await Issue.findById(id);
   if (!issue) return res.status(404).json({ message: "Issue not found" });
 
-  const path = await generateIssuePDF(issue);
+  const pdfBuffer = await generateIssuePDF(issue);
 
-  res.download(path);
+  // Send PDF buffer directly (serverless compatible)
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", `attachment; filename="issue_${id}.pdf"`);
+  res.setHeader("Content-Length", pdfBuffer.length);
+  res.send(pdfBuffer);
 };

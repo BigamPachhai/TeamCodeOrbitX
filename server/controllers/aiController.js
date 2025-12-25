@@ -32,9 +32,16 @@ export const generateAIContent = async (req, res) => {
       });
     }
 
-    // Upload image to Cloudinary
-    const uploaded = await cloudinary.uploader.upload(req.file.path, {
-      folder: "ai-temp",
+    // Upload image to Cloudinary (serverless compatible - use buffer)
+    const uploaded = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { folder: "ai-temp" },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      uploadStream.end(req.file.buffer);
     });
 
     const imageUrl = uploaded.secure_url;

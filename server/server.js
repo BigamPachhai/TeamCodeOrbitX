@@ -56,8 +56,9 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Serve static files from uploads folder
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// Static file serving removed for serverless compatibility
+// Files should be served from Cloudinary CDN instead
+// app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Middleware to ensure DB connection before each request
 app.use(async (req, res, next) => {
@@ -121,5 +122,9 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Export for Vercel
+// Export for Vercel serverless
+// Vercel expects a handler function, not the app directly
 export default app;
+
+// For Vercel serverless functions, we also export a handler
+export const handler = app;

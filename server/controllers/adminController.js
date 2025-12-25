@@ -244,11 +244,18 @@ export const uploadAfterPhoto = async (req, res) => {
       return res.status(404).json({ message: "Issue not found" });
     }
 
-    // Upload image to Cloudinary
+    // Upload image to Cloudinary (serverless compatible - use buffer)
     let afterImageUrl = null;
     if (req.file) {
-      const upload = await cloudinary.uploader.upload(req.file.path, {
-        folder: "before-after",
+      const upload = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: "before-after" },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        uploadStream.end(req.file.buffer);
       });
       afterImageUrl = upload.secure_url;
     } else {

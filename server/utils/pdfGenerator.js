@@ -1,11 +1,26 @@
 import PDFDocument from "pdfkit";
-import fs from "fs";
+import { Writable } from "stream";
 
 export const generateIssuePDF = async (issue, baseUrl = "http://localhost:3000") => {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ margin: 50 });
-    const path = `./uploads/issue_${issue._id}_${Date.now()}.pdf`;
-    const stream = fs.createWriteStream(path);
+    // Use memory buffer instead of filesystem for serverless compatibility
+    const chunks = [];
+    
+    const stream = new Writable({
+      write(chunk, encoding, callback) {
+        chunks.push(chunk);
+        callback();
+      },
+    });
+
+    stream.on("finish", () => {
+      const buffer = Buffer.concat(chunks);
+      resolve(buffer);
+    });
+
+    stream.on("error", reject);
+    doc.on("error", reject);
 
     doc.pipe(stream);
 
@@ -112,8 +127,5 @@ export const generateIssuePDF = async (issue, baseUrl = "http://localhost:3000")
       .text(`Report this issue at: ${baseUrl}/issue/${issue._id}`, 50, yPos + 30);
 
     doc.end();
-
-    stream.on("finish", () => resolve(path));
-    stream.on("error", reject);
   });
 };

@@ -26,8 +26,9 @@ import {
 
 const router = express.Router();
 
-// Multer upload (temporary local storage before Cloudinary)
-const upload = multer({ dest: "uploads/" });
+// Multer upload - use memory storage for serverless compatibility
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 /* ==========================================================
    AI ROUTES (must come BEFORE /:id)
