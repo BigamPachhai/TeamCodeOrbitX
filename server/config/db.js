@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // Prevent multiple connections in serverless
-mongoose.set('strictQuery', false);
+mongoose.set("strictQuery", false);
 
 const connectDB = async () => {
   try {
@@ -17,7 +17,7 @@ const connectDB = async () => {
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
     });
-    
+
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
     console.error("MongoDB Connection Error:", error.message);
