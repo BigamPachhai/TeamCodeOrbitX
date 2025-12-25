@@ -58,8 +58,17 @@ app.use(express.json());
 // Serve static files from uploads folder
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// DB
-connectDB();
+// DB Connection (initialize once)
+let dbConnected = false;
+const initDB = async () => {
+  if (!dbConnected) {
+    await connectDB();
+    dbConnected = true;
+  }
+};
+
+// Initialize DB connection
+initDB().catch((err) => console.error("DB Connection Error:", err));
 
 // Health check endpoint
 app.get("/", (req, res) => {
@@ -86,12 +95,12 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/upvotes", upvoteRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/push", pushRoutes);
 app.use("/api/timeline", timelineRoutes);
 app.use("/api/evidence", evidenceRoutes);
 app.use("/api/priority", priorityRoutes);
 app.use("/api/predictions", predictionRoutes);
 app.use("/api/budget", budgetRoutes);
-app.use("/api/notifications", pushRoutes);
 
 // 404 handler
 app.use("*", (req, res) => {
@@ -110,14 +119,6 @@ app.use((err, req, res, next) => {
     ...(process.env.NODE_ENV !== "production" && { stack: err.stack }),
   });
 });
-
-// Start Server
-const PORT = process.env.PORT || 9000;
-
-// For Vercel serverless functions, don't start a listener
-if (process.env.NODE_ENV !== "production") {
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-}
 
 // Export for Vercel
 export default app;
