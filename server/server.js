@@ -44,7 +44,8 @@ const corsOptions = {
       callback(null, true);
     } else {
       console.log("CORS blocked origin:", origin);
-      callback(new Error("Not allowed by CORS"));
+      // Don't throw error, just reject silently to prevent crashes
+      callback(null, false);
     }
   },
   credentials: true,
@@ -61,15 +62,16 @@ app.use(express.json());
 // app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Middleware to ensure DB connection before each request
+// Made more resilient for serverless - won't crash if DB is temporarily unavailable
 app.use(async (req, res, next) => {
   try {
     await connectDB();
-    next();
   } catch (error) {
-    console.error("DB Connection Error:", error);
-    // Continue anyway - let routes handle DB errors
-    next();
+    console.error("DB Connection Error:", error.message);
+    // Don't block the request - routes can handle DB errors gracefully
+    // This prevents the entire function from crashing
   }
+  next();
 });
 
 // Health check endpoint
@@ -112,9 +114,15 @@ app.use("*", (req, res) => {
   });
 });
 
-// Global error handler
+// Global error handler - must be last
 app.use((err, req, res, next) => {
   console.error("Error:", err);
+  
+  // Don't send response if already sent
+  if (res.headersSent) {
+    return next(err);
+  }
+  
   res.status(err.status || 500).json({
     status: "error",
     message: err.message || "Internal server error",
@@ -122,9 +130,15 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Export for Vercel serverless
-// Vercel expects a handler function, not the app directly
-export default app;
+// Unhandled promise rejection handler (for serverless)
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+});
 
-// For Vercel serverless functions, we also export a handler
-export const handler = app;
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception:", error);
+});
+
+// Export for Vercel serverless
+// Vercel with @vercel/node automatically wraps Express apps
+export default app;
