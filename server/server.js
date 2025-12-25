@@ -59,8 +59,17 @@ app.use(express.json());
 // Serve static files from uploads folder
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Connect to database (cached connection for serverless)
-connectDB().catch((err) => console.error("Initial DB connection failed:", err));
+// Middleware to ensure DB connection before each request
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error("DB Connection Error:", error);
+    // Continue anyway - let routes handle DB errors
+    next();
+  }
+});
 
 // Health check endpoint
 app.get("/", (req, res) => {
