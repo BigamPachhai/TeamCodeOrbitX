@@ -59,27 +59,8 @@ app.use(express.json());
 // Serve static files from uploads folder
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// DB Connection middleware - connect on first request
-let dbConnected = false;
-const ensureDBConnection = async (req, res, next) => {
-  if (!dbConnected) {
-    try {
-      await connectDB();
-      dbConnected = true;
-    } catch (err) {
-      console.error("DB Connection Error:", err);
-    }
-  }
-  next();
-};
-
-// Apply DB middleware to all routes except health checks
-app.use((req, res, next) => {
-  if (req.path === "/" || req.path === "/api/health") {
-    return next();
-  }
-  return ensureDBConnection(req, res, next);
-});
+// Connect to database (cached connection for serverless)
+connectDB().catch(err => console.error("Initial DB connection failed:", err));
 
 // Health check endpoint
 app.get("/", (req, res) => {

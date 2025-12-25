@@ -1,28 +1,38 @@
 import mongoose from "mongoose";
-import dotenv from "dotenv";
-dotenv.config();
 
-// Prevent multiple connections in serverless
-mongoose.set("strictQuery", false);
+// Cached connection for serverless
+let cached = global.mongoose;
+
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
 
 const connectDB = async () => {
-  try {
-    // If already connected, return
-    if (mongoose.connection.readyState === 1) {
-      console.log("MongoDB already connected");
-      return;
-    }
-
-    const conn = await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-    });
-
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
-  } catch (error) {
-    console.error("MongoDB Connection Error:", error.message);
-    throw error;
+  // Return existing connection
+  if (cached.conn) {
+    return cached.conn;
   }
+
+  // Return existing connection promise
+  if (!cached.promise) {
+    const opts = {
+      bufferCommands: false,
+    };
+
+    cached.promise = mongoose.connect(process.env.MONGO_URI, opts).then((mongoose) => {
+      console.log("MongoDB Connected");
+      return mongoose;
+    });
+  }
+
+  try {
+    cached.conn = await cached.promise;
+  } catch (e) {
+    cached.promise = null;
+    throw e;
+  }
+
+  return cached.conn;
 };
 
 export default connectDB;
